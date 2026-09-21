@@ -20,8 +20,7 @@
     var d = new URLSearchParams(location.search).get("d");
     var land = new URLSearchParams(location.search).get("o") === "land";
     if (!d) return;
-    var sel = document.querySelector("#emulator-root .df-select");
-    if (sel) { sel.value = d; sel.dispatchEvent(new Event("change")); }
+    if (window.__emulator) window.__emulator.setDevice(d);
     if (land) {
       var rot = document.querySelector("#emulator-root .df-btn");
       if (rot && !rot.disabled) rot.click();

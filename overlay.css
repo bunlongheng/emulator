@@ -20,8 +20,8 @@
   display: flex !important;
   flex-direction: column !important;
   color: #e9e7e2 !important;
-  --df-accent: #ff9d4d;
-  --df-accent-2: #ff7a45;
+  --df-accent: #38bdf8;
+  --df-accent-2: #0ea5e9;
   --df-glass: rgba(28, 27, 26, 0.72);
   --df-line: rgba(255, 255, 255, 0.1);
   --df-metal: linear-gradient(155deg, #4a4c52 0%, #232428 45%, #34363c 100%);
@@ -87,41 +87,82 @@
   box-shadow: 0 0 12px var(--df-accent) !important;
 }
 
-#emulator-root select.df-select {
-  appearance: none !important;
-  -webkit-appearance: none !important;
+/* device picker - a real listbox, because a native <option> cannot carry an icon */
+#emulator-root .df-pick { position: relative !important; }
+#emulator-root .df-pick-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  height: 36px !important;
+  padding: 0 8px 0 9px !important;
   border: 1px solid var(--df-line) !important;
-  background: rgba(255, 255, 255, 0.04)
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23bdb9b1' stroke-width='1.8'><path d='M2 4l4 4 4-4'/></svg>")
-    no-repeat right 8px center !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
   color: #f4f2ee !important;
   font-size: 12px !important;
   font-weight: 600 !important;
-  padding: 6px 24px 6px 9px !important;
-  border-radius: 9px !important;
   cursor: pointer !important;
   outline: none !important;
-  max-width: 150px !important;
+  transition: background 0.15s ease !important;
 }
-#emulator-root select.df-select:hover { background-color: rgba(255, 255, 255, 0.08) !important; }
-#emulator-root select.df-select option,
-#emulator-root select.df-select optgroup { background: #1b1a18 !important; color: #f4f2ee !important; }
+#emulator-root .df-pick-btn:hover { background: rgba(255, 255, 255, 0.1) !important; }
+#emulator-root .df-pick-icon svg { width: 17px !important; height: 17px !important; display: block !important; color: var(--df-accent) !important; }
+#emulator-root .df-pick-label { max-width: 132px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+#emulator-root .df-pick-caret svg { width: 13px !important; height: 13px !important; display: block !important; color: rgba(233, 231, 226, 0.55) !important; }
 
-#emulator-root .df-dims {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.02em !important;
-  color: var(--df-accent) !important;
-  background: rgba(255, 157, 77, 0.1) !important;
-  border: 1px solid rgba(255, 157, 77, 0.22) !important;
-  padding: 6px 10px !important;
-  border-radius: 9px !important;
-  white-space: nowrap !important;
+#emulator-root .df-pop {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  left: 0 !important;
+  z-index: 6 !important;
+  display: none !important;
+  flex-direction: column !important;
+  min-width: 244px !important;
+  max-height: min(70vh, 460px) !important;
+  overflow-y: auto !important;
+  padding: 5px !important;
+  border: 1px solid var(--df-line) !important;
+  border-radius: 12px !important;
+  /* solid, not glass: this panel is tall enough to sit over the framed device, and any
+     translucency ghosts the site's own text through the rows. #1b1a18 is what the native
+     option list used before this picker replaced it. */
+  background: #1b1a18 !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  animation: df-pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
 }
+#emulator-root .df-pop.df-show { display: flex !important; }
+#emulator-root .df-grp { display: flex !important; flex-direction: column !important; }
+#emulator-root .df-og {
+  padding: 9px 10px 4px !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.09em !important;
+  text-transform: uppercase !important;
+  color: rgba(233, 231, 226, 0.38) !important;
+}
+#emulator-root .df-po {
+  display: grid !important;
+  grid-template-columns: 18px 1fr auto 14px !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 7px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #e9e7e2 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+#emulator-root .df-po:hover { background: rgba(255, 255, 255, 0.09) !important; }
+#emulator-root .df-po-icon svg { width: 18px !important; height: 18px !important; display: block !important; color: rgba(233, 231, 226, 0.6) !important; }
+#emulator-root .df-po-name { font-size: 12.5px !important; font-weight: 600 !important; white-space: nowrap !important; }
+#emulator-root .df-po-check { opacity: 0 !important; }
+#emulator-root .df-po-check svg { width: 14px !important; height: 14px !important; display: block !important; color: var(--df-accent) !important; }
+#emulator-root .df-po.df-on { background: rgba(56, 189, 248, 0.12) !important; }
+#emulator-root .df-po.df-on .df-po-icon svg,
+#emulator-root .df-po.df-on .df-po-name { color: var(--df-accent) !important; }
+#emulator-root .df-po.df-on .df-po-check { opacity: 1 !important; }
+
 
 /* custom W x H inputs */
 #emulator-root .df-custom {
@@ -163,9 +204,9 @@
 #emulator-root .df-btn:active { transform: scale(0.92) !important; }
 #emulator-root .df-btn svg { width: 18px !important; height: 18px !important; display: block !important; }
 #emulator-root .df-btn[disabled] { opacity: 0.28 !important; cursor: not-allowed !important; pointer-events: none !important; }
-#emulator-root .df-btn.df-close:hover { background: rgba(255, 122, 69, 0.9) !important; color: #1a0f08 !important; border-color: transparent !important; }
-#emulator-root .df-btn.df-active { background: linear-gradient(150deg, var(--df-accent), var(--df-accent-2)) !important; color: #1a0f08 !important; border-color: transparent !important; }
-#emulator-root .df-btn.df-dl:hover { background: linear-gradient(150deg, var(--df-accent), var(--df-accent-2)) !important; color: #1a0f08 !important; border-color: transparent !important; }
+#emulator-root .df-btn.df-close:hover { background: rgba(239, 68, 68, 0.92) !important; color: #fff !important; border-color: transparent !important; }
+#emulator-root .df-btn.df-active { background: linear-gradient(150deg, var(--df-accent), var(--df-accent-2)) !important; color: #04121a !important; border-color: transparent !important; }
+#emulator-root .df-btn.df-dl:hover { background: linear-gradient(150deg, var(--df-accent), var(--df-accent-2)) !important; color: #04121a !important; border-color: transparent !important; }
 
 /* ---------- stage ---------- */
 #emulator-root .df-stage {
@@ -198,7 +239,7 @@
   transition: opacity 0.45s ease !important;
   pointer-events: none !important;
   background:
-    radial-gradient(85% 55% at 50% -6%, rgba(255, 157, 77, 0.12), transparent 60%),
+    radial-gradient(85% 55% at 50% -6%, rgba(56, 189, 248, 0.12), transparent 60%),
     radial-gradient(60% 46% at 50% 40%, rgba(150, 170, 205, 0.13), transparent 72%),
     linear-gradient(180deg, #17171b 0%, #131317 44%, #0d0d10 64%, #0a0a0c 100%) !important;
 }
@@ -336,9 +377,32 @@
   gap: 0.34em !important;
   line-height: 1 !important;
 }
-#emulator-root .df-sb-ind svg.df-sb-g { display: block !important; height: 1em !important; width: auto !important; }
-#emulator-root .df-sb-ind svg.df-sb-batt { height: 0.95em !important; }
-#emulator-root .df-sb-pct { fill: var(--sb-num, #fff) !important; font-family: -apple-system, "SF Pro Text", system-ui, sans-serif !important; }
+/* SF Symbol glyphs: the PNG's alpha is Apple's artwork, currentColor supplies the ink.
+   --m is the mask url and --ar the symbol's own aspect ratio, both set inline per glyph. */
+#emulator-root .df-g {
+  display: block !important;
+  flex: none !important;
+  aspect-ratio: var(--ar) !important;
+  background-color: currentColor !important;
+  -webkit-mask: var(--m) center / contain no-repeat !important;
+  mask: var(--m) center / contain no-repeat !important;
+}
+#emulator-root .df-sb-ind .df-sb-g { height: 1em !important; }
+#emulator-root .df-sb-ind .df-sb-battg { height: 0.92em !important; }
+/* battery reads 100 inside the filled body, the way iOS does with percentage turned on */
+#emulator-root .df-sb-batt { position: relative !important; display: block !important; line-height: 0 !important; }
+#emulator-root .df-sb-pct {
+  position: absolute !important;
+  top: 50% !important;
+  left: 45% !important;
+  transform: translate(-50%, -50%) !important;
+  color: var(--sb-num, #fff) !important;
+  font-size: 0.54em !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  font-variant-numeric: tabular-nums !important;
+  font-family: -apple-system, "SF Pro Text", system-ui, sans-serif !important;
+}
 
 /* ---------- Safari bottom chrome (URL pill + toolbar) ----------
    All internal sizes are in em so the whole bar scales from the one font-size JS sets. */
@@ -385,7 +449,7 @@
   color: var(--sf-icon) !important;
   flex: 0 0 auto !important;
 }
-#emulator-root .df-sf-aa2 { font-size: 0.72em !important; margin-left: 0.06em !important; }
+#emulator-root .df-sf-aa .df-g { height: 0.95em !important; }
 #emulator-root .df-sf-mid {
   flex: 1 1 auto !important;
   display: flex !important;
@@ -395,7 +459,7 @@
   min-width: 0 !important;
 }
 #emulator-root .df-sf-lock { display: inline-flex !important; flex: 0 0 auto !important; color: var(--sf-dim) !important; }
-#emulator-root .df-sf-lock svg { width: 0.84em !important; height: 0.84em !important; display: block !important; }
+#emulator-root .df-sf-lock .df-g { height: 0.84em !important; }
 #emulator-root .df-sf-host {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -405,7 +469,7 @@
 }
 #emulator-root .df-sf-reload { display: inline-flex !important; flex: 0 0 auto !important; color: var(--sf-icon) !important; cursor: pointer !important; pointer-events: auto !important; }
 #emulator-root .df-sf-reload:active { opacity: 0.55 !important; }
-#emulator-root .df-sf-reload svg { width: 1.18em !important; height: 1.18em !important; display: block !important; }
+#emulator-root .df-sf-reload .df-g { height: 1.18em !important; }
 #emulator-root .df-sf-tools {
   display: flex !important;
   align-items: center !important;
@@ -413,7 +477,7 @@
   padding: 0 0.55em !important;
 }
 #emulator-root .df-sf-tool { display: inline-flex !important; color: var(--sf-icon) !important; }
-#emulator-root .df-sf-tool svg { width: 1.78em !important; height: 1.78em !important; display: block !important; }
+#emulator-root .df-sf-tool .df-g { height: 1.62em !important; }
 #emulator-root .df-sf-home {
   align-self: center !important;
   width: 36% !important;
@@ -681,3 +745,31 @@
 #emulator-root.df-capturing .df-menu,
 #emulator-root.df-capturing .df-toast,
 #emulator-root.df-capturing .df-hint { visibility: hidden !important; }
+
+/* ---------- iPhone Duo poses (the open bezel folded in 3D) ---------- */
+/* Each half is its own plane: overflow:hidden clips the shared art to its side of the hinge
+   BEFORE the rotation, so the two halves meet exactly on the crease. */
+#emulator-root .df-pose {
+  display: none !important;
+  position: relative !important;
+}
+/* The box and camera are flat planes at z=0; a half that leans AWAY from the viewer sits behind
+   them, and Chrome hit-tests those planes first even though they paint nothing - so the
+   pointer never reached that half's page. Only the halves take the pointer. */
+#emulator-root .df-pose, #emulator-root .df-pose-cam { pointer-events: none !important; }
+#emulator-root .df-pose-half {
+  position: absolute !important;
+  pointer-events: auto !important;
+  /* a half folded past 90deg (the tent's far side) shows its back: the mirrored bezel around a
+     dark screen reads as the device's rear panel, which is exactly what Apple's shot shows */
+  backface-visibility: visible !important;
+}
+#emulator-root .df-pose-pane { position: absolute !important; }
+#emulator-root .df-pose-shade {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 7 !important;
+  pointer-events: none !important;
+}
+#emulator-root .df-pose iframe { border: 0 !important; display: block !important; }
+#emulator-root .df-pose-cam { transform-style: preserve-3d !important; }
