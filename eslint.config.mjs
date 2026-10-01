@@ -25,12 +25,14 @@ export default [
   },
   {
     // node test runner + browser-context globals used inside page.evaluate() callbacks
-    files: ["tests/**/*.mjs"],
+    files: ["tests/**/*.mjs", "scripts/**/*.mjs"],
     languageOptions: {
       ecmaVersion: 2022, sourceType: "module",
       globals: {
         console: "readonly", process: "readonly", setTimeout: "readonly",
         document: "readonly", getComputedStyle: "readonly", window: "readonly",
+        Image: "readonly", Uint8Array: "readonly",
+        createImageBitmap: "readonly", fetch: "readonly",
       },
     },
     rules: { "no-unused-vars": ["warn", ignore] },

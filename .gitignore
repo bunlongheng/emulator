@@ -3,6 +3,7 @@ node_modules/
 *.log
 *.zip
 tests/screenshots/
+tests/exports/
 .env
 .env.local
 docs/screenshots/
