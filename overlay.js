@@ -518,7 +518,9 @@
     const r = fr.sr || 0;
     // Make the iframe a scrollbar-width wider than the screen so the desktop scrollbar lands
     // just past the clipped edge and stays hidden - real devices use space-less overlay bars.
-    const SBW = scrollbarWidth();
+    // Not for Mac displays: a real MacBook hands the page exactly `wl` CSS px, and a page that
+    // never scrolls (so no scrollbar to hide) would lose its last 15px past the bezel.
+    const SBW = d.desk ? 0 : scrollbarWidth();
     // ot = top of the PNG's real screen opening when it sits above oy (iPhone: oy is 150px below
     // the bezel so the status bar clears the island). The screen must cover that cap too, or the
     // island floats on the stage charcoal instead of on the screen. Cap > 0 rounds the top corners.
