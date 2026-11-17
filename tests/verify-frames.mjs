@@ -21,10 +21,20 @@ const DEVICES = [
   { id: "ipadpro", type: "image" },
   { id: "ipadpro", o: "land", type: "image" },
   { id: "macbook", type: "image" },
+  { id: "macbookair", type: "image" },
+  { id: "macbookpro16", type: "image" },
+  { id: "macbookairgold", type: "image" },
   { id: "imac", type: "image" },
   { id: "studiodisplay", type: "image" },
   { id: "zfold", type: "drawn" },
-  { id: "watch", type: "drawn" },
+  { id: "iphoneduo", type: "image" },
+  { id: "iphoneduo", o: "land", type: "image" },
+  { id: "iphoneduoopen", type: "image" },
+  { id: "iphoneduoopen", o: "land", type: "image" },
+  { id: "watch", type: "image" },
+  { id: "duobutterfly", type: "pose" },
+  { id: "duodesk", type: "pose" },
+  { id: "duolaptop", type: "pose" },
   { id: "custom", type: "drawn" },
 ];
 
@@ -41,13 +51,15 @@ try {
     const errs = [];
     try {
       await page.goto(url, { waitUntil: "load" });
-      await page.waitForSelector("#emulator-root .df-device", { timeout: 6000 });
+      // a folded pose hides the flat device and renders its own two-plane box instead
+      const box = d.type === "pose" ? ".df-pose" : ".df-device";
+      await page.waitForSelector("#emulator-root " + box, { timeout: 6000 });
       await page.waitForTimeout(900); // let render + PNG load settle
 
-      const info = await page.evaluate(() => {
+      const info = await page.evaluate((box) => {
         const root = document.getElementById("emulator-root");
-        const device = root.querySelector(".df-device");
-        const img = root.querySelector(".df-frameimg");
+        const device = root.querySelector(box);
+        const img = root.querySelector(box + " .df-frameimg");
         const r = device.getBoundingClientRect();
         const st = root.querySelector(".df-stage").getBoundingClientRect();
         return {
@@ -66,12 +78,16 @@ try {
           imgSrc: img.getAttribute("src"),
           rimBefore: getComputedStyle(device, "::before").display,
           rigType: root.querySelector(".df-rig").getAttribute("data-type"),
-          selValue: root.querySelector(".df-select").value,
+          selValue: [...root.querySelectorAll(".df-po.df-on")].map((e) => e.dataset.id),
+          // a pose must have BOTH halves framed and both screens mounted
+          halves: root.querySelectorAll(".df-pose-half").length,
+          halfImgs: [...root.querySelectorAll(".df-pose .df-frameimg")].filter((i) => i.naturalWidth > 0).length,
+          halfFrames: root.querySelectorAll(".df-pose iframe").length,
         };
-      });
+      }, box);
 
       if (!(info.deviceW > 0 && info.deviceH > 0)) errs.push("device has zero size");
-      if (info.selValue !== d.id) errs.push(`wrong device selected (${info.selValue})`);
+      if (!info.selValue.includes(d.id)) errs.push(`wrong device selected (${info.selValue})`);
       // the stage must never grow past the viewport (flex min-height:auto + the unscaled 3000px
       // rig did exactly that and shoved the device off the bottom of the screen)
       if (info.stageH > info.viewH) errs.push(`stage overflows viewport (${info.stageH}px > ${info.viewH}px)`);
@@ -81,7 +97,11 @@ try {
       if (Math.abs(info.deviceCx - info.viewW / 2) > 4 || Math.abs(info.deviceCy - info.viewH / 2) > 4)
         errs.push(`device not centered (center ${info.deviceCx},${info.deviceCy} vs ${info.viewW / 2},${info.viewH / 2})`);
 
-      if (d.type === "image") {
+      if (d.type === "pose") {
+        if (info.halves !== 2) errs.push(`pose has ${info.halves} halves, expected 2`);
+        if (info.halfImgs !== 2) errs.push(`pose frame art missing (${info.halfImgs}/2 loaded)`);
+        if (info.halfFrames !== 2) errs.push(`pose is missing a screen (${info.halfFrames}/2 iframes)`);
+      } else if (d.type === "image") {
         // the bezel IS the frame PNG - prove it loaded and is visible
         if (info.imgDisplay === "none") errs.push("frame image hidden (no bezel)");
         if (!info.imgComplete || info.imgNaturalW === 0) errs.push(`frame PNG failed to load: ${info.imgSrc}`);

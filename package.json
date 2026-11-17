@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "python3 -m http.server 3212 --bind 0.0.0.0",
     "test": "node tests/verify-frames.mjs",
-    "lint": "eslint overlay.js background.js copy.js tests"
+    "lint": "eslint overlay.js background.js copy.js tests",
+    "test:export": "node tests/verify-export.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

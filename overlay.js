@@ -34,28 +34,81 @@
   //                   The live site renders into the screen rect (ox,oy,sw,sh) and the PNG
   //                   sits on top. `wl` is the logical viewport width the site sees.
   //  type:phone/fold/watch/frame -> a vector (CSS) bezel, for devices we have no PNG for.
+  // The two Apple "open" bezels. Both the flat iPhone Duo (open) and every folded pose render
+  // from these, so the hinge geometry only ever has to be right in one place.
+  const DUO_L = { file: "iphone-duo-open-landscape.png", fw: 3093, fh: 2247, ox: 120, oy: 120, sw: 2853, sh: 2007, sr: 174,
+                  sb: { top: 34, h: 96, padX: 110, font: 42, glyph: 36 } };
+  const DUO_P = { file: "iphone-duo-open-portrait.png", fw: 2247, fh: 3093, ox: 120, oy: 120, sw: 2007, sh: 2853, sr: 174,
+                  sb: { top: 40, h: 108, padX: 96, font: 46, glyph: 40 } };
+
   const DEVICES = [
     // --- Apple, real photoreal frames ---
-    { id: "iphone", label: "iPhone 17 Pro Max", cat: "Apple - real frames", type: "image", rot: true,
-      frame: { file: "iphone.png", fw: 1470, fh: 3000, ox: 75, oy: 217, ot: 67, sw: 1320, sh: 2717, sr: 150,
+    // iPhone Duo - Apple's book-style foldable, Star White. These are Apple's own Design
+    // Resources bezels (developer.apple.com/design/resources), so the art is the real device
+    // and the screen is a genuine transparent cutout. All four are exported at 3x.
+    // Folded and open are the SAME physical height (2137 vs 2138 frame px) - unfolding doubles
+    // the width - so "open" defaults to the landscape bezel and rotates to Apple's portrait one.
+    { id: "iphoneduo", label: "iPhone Duo (front)", mode: "Front", fam: "duo", cat: "Apple - real frames", type: "image", rot: true,
+      frame: { file: "iphone-duo-closed-portrait.png", fw: 1574, fh: 2194, ox: 88, oy: 80, sw: 1398, sh: 2034, sr: 190,
+               // padX clears Apple's camera cutout, a 108px dot at screen x 1201-1308
+               sb: { top: 40, h: 108, padX: 220, font: 46, glyph: 40 } }, wl: 466,
+      frameL: { file: "iphone-duo-closed-landscape.png", fw: 2194, fh: 1574, ox: 80, oy: 88, sw: 2034, sh: 1398, sr: 190,
+                // rotated, the same cutout lands top-left at screen x 89-197
+                sb: { top: 34, h: 96, padX: 220, font: 42, glyph: 36 } }, wlL: 678 },
+    { id: "iphoneduoopen", label: "iPhone Duo (open)", mode: "Open", fam: "duo", cat: "Apple - real frames", type: "image", rot: true,
+      frame: DUO_L, wl: 951, frameL: DUO_P, wlL: 669 },
+    // --- Duo poses: the same open bezel, cut at the hinge and folded in 3D ---
+    // `axis` is the hinge (y = vertical hinge, split left|right; x = horizontal, split top|bottom),
+    // `a`/`b` are each half's CSS rotation about it, `sbHalf` is the half that wears the status bar.
+    { id: "duobutterfly", label: "iPhone Duo (butterfly)", mode: "Butterfly", fam: "duo", cat: "Apple - real frames", type: "pose",
+      frame: DUO_L, wl: 951, axis: "y", a: 40, b: -40, persp: 4600, sbHalf: 2 },
+    // desk clock is a TENT: the hinge is the ridge at the top, the near half leans back toward
+    // it carrying the page, the far half is folded down behind it so you see its back - a dark
+    // panel that peeks out on the right because the camera sits a little to the left and above
+    { id: "duodesk", label: "iPhone Duo (desk clock)", mode: "Desk clock", fam: "duo", cat: "Apple - real frames", type: "pose",
+      frame: DUO_P, wl: 669, axis: "x", a: 138, b: 16, persp: 5200, sbHalf: 2, solo: 2,
+      yaw: -24, pitch: 7 },
+    { id: "duolaptop", label: "iPhone Duo (laptop)", mode: "Laptop", fam: "duo", cat: "Apple - real frames", type: "pose",
+      frame: DUO_P, wl: 669, axis: "x", a: 8, b: 72, persp: 5200, sbHalf: 1 },
+    { id: "iphone", label: "iPhone 18 Pro Max", cat: "Apple - real frames", type: "image", rot: true,
+      // Apple's own Silver bezel. Its opening is the full 440 x 956 pt display (the frame this
+      // replaced was 50 pt short), and the Dynamic Island is painted into the art - it sits in
+      // the gap between the clock and the status glyphs, so no extra padding is needed.
+      frame: { file: "iphone-18-pro-max-portrait.png", fw: 1470, fh: 3000, ox: 75, oy: 66, sw: 1320, sh: 2868, sr: 206,
                sb: { top: 40, h: 108, padX: 108, font: 46, glyph: 40 },
-               sf: { h: 300, u: 42 } }, wl: 440 },
+               sf: { h: 300, u: 42 } }, wl: 440,
+      frameL: { file: "iphone-18-pro-max-landscape.png", fw: 3000, fh: 1470, ox: 66, oy: 76, sw: 2868, sh: 1320, sr: 206,
+                sb: { top: 30, h: 90, padX: 190, font: 40, glyph: 34 },
+                sf: { h: 190, u: 36 } }, wlL: 956 },
     { id: "ipadpro", label: 'iPad Pro 13" (M4)', cat: "Apple - real frames", type: "image", rot: true,
       frame: { file: "ipad-portrait.png", fw: 2245, fh: 2930, ox: 96, oy: 102, sw: 2048, sh: 2732, sr: 44,
                sb: { top: 20, h: 64, padX: 60, font: 30, glyph: 27 } }, wl: 1024,
       frameL: { file: "ipad-landscape.png", fw: 2930, fh: 2245, ox: 102, oy: 101, sw: 2732, sh: 2048, sr: 44,
                 sb: { top: 18, h: 60, padX: 60, font: 28, glyph: 25 } }, wlL: 1366 },
     { id: "ipada16", label: "iPad (A16)", cat: "Apple - real frames", type: "image", rot: true,
-      frame: { file: "ipad-a16.png", fw: 900, fh: 1019, ox: 202, oy: 41, sw: 656, sh: 938, sr: 28 }, wl: 820 },
+      frame: { file: "ipad-a16.png", fw: 707, fh: 1009, ox: 34, oy: 35, sw: 656, sh: 938, sr: 28 }, wl: 820 },
     { id: "macbook", label: "MacBook", cat: "Apple - real frames", type: "image", desk: true,
       frame: { file: "macbook.png", fw: 3306, fh: 1897, ox: 373, oy: 123, sw: 2560, sh: 1600, sr: 6 }, wl: 1280 },
+    // Sky Blue and Space Black are Apple's own bezels, as shipped - the notch is painted into
+    // the art inside the screen rect, exactly like the iPhone's Dynamic Island, so the page
+    // renders behind it. Both open onto the full display: macOS has no status bar of ours to
+    // reserve, so there is no `sb` here.
+    { id: "macbookair", label: 'MacBook Air 13" (Sky Blue)', cat: "Apple - real frames", type: "image", desk: true,
+      frame: { file: "macbook-air-sky-blue.png", fw: 3400, fh: 2240, ox: 420, oy: 288, sw: 2560, sh: 1664, sr: 6 }, wl: 1280 },
+    // Apple has never published a gold bezel, so this one stays derived from the silver art by
+    // scripts/recolor-frame.mjs - the last finish that still needs it.
+    { id: "macbookairgold", label: 'MacBook Air 13" (Gold)', cat: "Apple - real frames", type: "image", desk: true,
+      frame: { file: "macbook-air-gold.png", fw: 3306, fh: 1897, ox: 373, oy: 123, sw: 2560, sh: 1600, sr: 6 }, wl: 1280 },
+    { id: "macbookpro16", label: 'MacBook Pro 16" (Space Black)', cat: "Apple - real frames", type: "image", desk: true,
+      frame: { file: "macbook-pro-16-space-black.png", fw: 4260, fh: 2840, ox: 402, oy: 303, sw: 3456, sh: 2234, sr: 6 }, wl: 1728 },
     { id: "imac", label: 'iMac 24"', cat: "Apple - real frames", type: "image", desk: true,
       frame: { file: "imac.png", fw: 4880, fh: 5720, ox: 200, oy: 1600, sw: 4480, sh: 2520, sr: 6 }, wl: 1280 },
     { id: "studiodisplay", label: "Studio Display", cat: "Apple - real frames", type: "image", desk: true,
       frame: { file: "apple-display.png", fw: 5520, fh: 4316, ox: 200, oy: 200, sw: 5120, sh: 2880, sr: 6 }, wl: 1440 },
+    { id: "watch", label: "Apple Watch Ultra 3", cat: "Apple - real frames", type: "image",
+      frame: { file: "apple-watch-ultra-3.png", fw: 600, fh: 960, ox: 89, oy: 223, sw: 422, sh: 514, sr: 129 }, wl: 211 },
     // --- Drawn bezels for devices we have no PNG for ---
     { id: "zfold",  label: "Galaxy Z Fold (open)",cat: "Drawn", type: "fold",  w: 884, h: 800, cam: "punch", p: [10, 10, 10, 10], out: 20, scr: 8, rot: true, sb: { top: 9, h: 32, padX: 34, font: 17, glyph: 15 } },
-    { id: "watch",  label: "Apple Watch Ultra",   cat: "Drawn", type: "watch", w: 184, h: 224, cam: "none",  p: [30, 26, 30, 26], out: 62, scr: 44 },
     // --- Custom ---
     { id: "custom", label: "Custom size…", cat: "Custom", type: "frame", w: 1280, h: 800, cam: "none", p: [10, 10, 10, 10], out: 14, scr: 6, rot: true },
   ];
@@ -65,29 +118,68 @@
     download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>',
     reload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-    contrast: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>',
-    github: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.8.5 12.3c0 5.2 3.4 9.6 8 11.1.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7 0-.7 0-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.4-5.5-6 0-1.3.5-2.4 1.3-3.2-.2-.3-.6-1.6 0-3.3 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 3 .1 3.3.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 8-5.9 8-11.1C23.5 5.8 18.3.5 12 .5z"/></svg>',
     copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
-    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.6l7.4-4.2M8.3 13.4l7.4 4.2"/></svg>',
+    caret: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6l4.6 4.6L19 7"/></svg>',
   };
 
-  const REPO_URL = "https://github.com/bunlongheng/emulator";
+  // Device silhouettes for the picker rows - same 24px stroke vocabulary as ICONS, so the
+  // menu reads as one system with the toolbar. Names alone are not enough: two iPads and two
+  // Duos look identical in a text list, and the outline tells them apart at a glance.
+  const GLYPHS = {
+    iphone: '<rect x="7.5" y="2.5" width="9" height="19" rx="2.6"/><path d="M10.4 4.9h3.2"/>',
+    ipadpro: '<rect x="3.5" y="2.5" width="17" height="19" rx="2"/>',
+    ipada16: '<rect x="5.5" y="4" width="13" height="16" rx="2"/>',
+    macbook: '<rect x="4.5" y="4" width="15" height="11" rx="1.4"/><path d="M2 18.6h20"/>',
+    macbookair: '<rect x="5.6" y="4.8" width="12.8" height="9.6" rx="1.3"/><path d="M3 18.2h18"/>',
+    // widest lid of the three, plus the Pro's notch - the only thing that tells it from the Air
+    // at 24px once both are stroked the same
+    macbookpro16: '<rect x="3.2" y="3.4" width="17.6" height="12.2" rx="1.4"/>' +
+      '<path d="M10.4 3.4h3.2v1.3h-3.2z" fill="currentColor" stroke="none"/><path d="M1 19.2h22"/>',
+    macbookairgold: '<rect x="5.6" y="4.8" width="12.8" height="9.6" rx="1.3"/><path d="M3 18.2h18"/>',
+    imac: '<rect x="2.5" y="3" width="19" height="13" rx="1.6"/><path d="M2.5 12.4h19"/><path d="M12 16v3.2M8.6 19.6h6.8"/>',
+    studiodisplay: '<rect x="2.5" y="3.6" width="19" height="11.4" rx="1.4"/><path d="M12 15v4.4M8.6 19.6h6.8"/>',
+    iphoneduo: '<rect x="7.5" y="2.5" width="9" height="19" rx="2.6"/><path d="M9.9 2.5v19"/>',
+    iphoneduoopen: '<rect x="2.5" y="4.5" width="19" height="15" rx="2.4"/><path d="M12 4.5v15" stroke-dasharray="2 2.2"/>',
+    watch: '<rect x="7.5" y="6.5" width="9" height="11" rx="3"/><path d="M9.4 6.5l.4-3.5h4.4l.4 3.5M9.4 17.5l.4 3.5h4.4l.4-3.5"/><path d="M16.9 10.6h1.3"/>',
+    zfold: '<rect x="2.5" y="4.5" width="19" height="15" rx="1.4"/><path d="M12 4.5v15"/><circle cx="17.2" cy="8" r=".9"/>',
+    duobutterfly: '<path d="M3 5.2l9 3 9-3v13.6l-9-3-9 3z"/><path d="M12 8.2v10.6"/>',
+    duodesk: '<path d="M2.5 18.5L5.2 6.5h12.6l2.7 12z"/><path d="M17.8 6.5l3.7 12h-1"/>',
+    duolaptop: '<rect x="5.2" y="3.8" width="13.6" height="9.6" rx="1.4"/><path d="M4.2 13.4h15.6l2.2 5.4H2z"/>',
+    custom: '<rect x="3" y="5" width="18" height="14" rx="2" stroke-dasharray="3 2.6"/>',
+  };
+  const devGlyph = (id) =>
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+    (GLYPHS[id] || GLYPHS.custom) +
+    "</svg>";
+
 
   // iOS status-bar glyphs (cellular, wifi, battery) - inherit color via currentColor.
-  const SB_ICONS =
-    '<svg class="df-sb-g" viewBox="0 0 20 14" fill="currentColor"><rect x="0" y="9" width="3.2" height="5" rx="1"/><rect x="5.6" y="6.4" width="3.2" height="7.6" rx="1"/><rect x="11.2" y="3.4" width="3.2" height="10.6" rx="1"/><rect x="16.8" y="0.4" width="3.2" height="13.6" rx="1"/></svg>' +
-    '<svg class="df-sb-g" viewBox="0 0 18 14" fill="currentColor"><path d="M9 3.2c3 0 5.8 1.2 7.8 3.2l-1.8 1.8C13.4 6.7 11.3 5.8 9 5.8S4.6 6.7 3 8.2L1.2 6.4C3.2 4.4 6 3.2 9 3.2z"/><path d="M9 7.7c1.7 0 3.2.7 4.3 1.7l-1.9 1.9c-.6-.6-1.5-1-2.4-1s-1.8.4-2.4 1L4.7 9.4C5.8 8.4 7.3 7.7 9 7.7z"/><circle cx="9" cy="12.4" r="1.6"/></svg>' +
-    '<svg class="df-sb-g df-sb-batt" viewBox="0 0 39 18" fill="none"><rect x="1" y="1.5" width="33" height="15" rx="4.3" stroke="currentColor" stroke-width="1.4" opacity="0.42"/><rect x="3" y="3.5" width="29" height="11" rx="2.6" fill="currentColor"/><path d="M36.4 6.2c1.2.35 1.2 5.25 0 5.6z" fill="currentColor" opacity="0.55"/><text class="df-sb-pct" x="17.5" y="13" text-anchor="middle" font-size="10.5" font-weight="700">100</text></svg>';
+  // Status-bar and Safari glyphs are the REAL SF Symbols, exported from macOS by
+  // scripts/extract-sf-symbols.swift. Each PNG is white-on-transparent: the alpha channel is
+  // Apple's artwork and CSS paints it through a mask with currentColor, so one file serves
+  // both the light and the dark bar. Redrawing these by hand never quite matches, and a
+  // slightly-wrong wifi arc or share box is what makes a mockup read as a knock-off.
+  const glyph = (file, w, h, cls) =>
+    `<i class="${cls}" style="--m:url(${FRAMES_BASE}${file});--ar:${w}/${h}"></i>`;
 
-  // Safari bottom-chrome glyphs (inherit color via currentColor).
+  const SB_ICONS =
+    glyph("sf-cellularbars.png", 256, 169, "df-g df-sb-g") +
+    glyph("sf-wifi.png", 256, 185, "df-g df-sb-g") +
+    '<span class="df-sb-batt">' +
+      glyph("sf-battery.png", 256, 121, "df-g df-sb-g df-sb-battg") +
+      '<span class="df-sb-pct">100</span>' +
+    "</span>";
+
+  // Safari bottom-chrome glyphs.
   const SF_ICONS = {
-    lock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a4.2 4.2 0 0 0-4.2 4.2V9H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-.8V6.2A4.2 4.2 0 0 0 12 2zm-2.4 7V6.2a2.4 2.4 0 0 1 4.8 0V9H9.6z"/></svg>',
-    reload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2 5.3"/><path d="M20 4v6h-6"/></svg>',
-    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg>',
-    forward: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l8 8-8 8"/></svg>',
-    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5"/><path d="M8 7l4-4 4 4"/><path d="M6 11.5v7A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5v-7"/></svg>',
-    book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.2C10.2 4.7 7.6 4.4 5 5V18.2c2.6-.6 5.2-.3 7 1.3 1.8-1.6 4.4-1.9 7-1.3V5c-2.6-.6-5.2-.3-7 1.2z"/><path d="M12 6.2V19.5"/></svg>',
-    tabs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"><rect x="7.5" y="7.5" width="12" height="12" rx="2.8"/><path d="M4.5 16V6.5A2.5 2.5 0 0 1 7 4h9.5"/></svg>',
+    lock: glyph("sf-lock.png", 220, 256, "df-g"),
+    reload: glyph("sf-reload.png", 217, 256, "df-g"),
+    back: glyph("sf-back.png", 185, 256, "df-g"),
+    forward: glyph("sf-forward.png", 185, 256, "df-g"),
+    share: glyph("sf-share.png", 218, 256, "df-g"),
+    book: glyph("sf-book.png", 256, 201, "df-g"),
+    tabs: glyph("sf-tabs.png", 256, 231, "df-g"),
   };
 
   const el = (tag, cls, html) => {
@@ -97,8 +189,10 @@
     return n;
   };
 
-  // sbLight = light glyphs on a dark band -> the black iOS status bar (default, matches Safari sim)
-  const state = { deviceId: DEVICES[0].id, landscape: false, customW: 1280, customH: 800, sbLight: true };
+  // sbLight = light glyphs on a dark band. Set automatically from the framed page, the way iOS
+  // styles the status bar from what sits under it; pageBg is that page colour and paints the
+  // band, so the bar reads as the app's own.
+  const state = { deviceId: "iphoneduoopen", landscape: false, customW: 1280, customH: 800, sbLight: true, pageBg: "" };
 
   // ---- toolbar ----
   const root = el("div", "");
@@ -107,22 +201,90 @@
   const bar = el("div", "df-bar");
   const brand = el("div", "df-brand", '<span class="df-dot"></span>EMULATOR');
 
-  const select = el("select", "df-select");
-  const groups = {};
-  DEVICES.forEach((d) => {
-    if (!groups[d.cat]) {
-      const g = document.createElement("optgroup");
-      g.label = d.cat;
-      groups[d.cat] = g;
-      select.appendChild(g);
-    }
-    const o = document.createElement("option");
-    o.value = d.id;
-    o.textContent = d.label;
-    groups[d.cat].appendChild(o);
+  // A native <select> cannot put an icon on a row, so a picker is a real listbox:
+  // silhouette + name. Two of them - the device, and (for a family like the Duo) its view mode.
+  const pickers = [];
+  const closePops = () => pickers.forEach((p) => p.list.classList.remove("df-show"));
+  const popOpen = () => pickers.some((p) => p.list.classList.contains("df-show"));
+  function makePick() {
+    const box = el("div", "df-pick");
+    const btn = el("button", "df-pick-btn");
+    const icon = el("span", "df-pick-icon");
+    const label = el("span", "df-pick-label");
+    btn.append(icon, label, el("span", "df-pick-caret", ICONS.caret));
+    const list = el("div", "df-pop");
+    box.append(btn, list);
+    const p = { box, btn, icon, label, list };
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.remove("df-show");
+      const open = list.classList.contains("df-show"); // one list open at a time
+      closePops();
+      list.classList.toggle("df-show", !open);
+    });
+    list.addEventListener("click", (e) => e.stopPropagation());
+    pickers.push(p);
+    return p;
+  }
+  const row = (id) =>
+    el("button", "df-po",
+      `<span class="df-po-icon">${devGlyph(id)}</span><span class="df-po-name"></span>` +
+      `<span class="df-po-check">${ICONS.check}</span>`);
+
+  // A device family collapses to ONE row in the device list; its members live in the mode
+  // dropdown next to it, so the Duo reads as one device you can hold five ways.
+  const FAMS = { duo: { label: "iPhone Duo", def: "iphoneduoopen", glyph: "iphoneduoopen" } };
+  const famHead = (fam) => DEVICES.find((x) => x.fam === fam);
+  // Every Apple bezel in a family is exported at the same 3x, so frame px are physically
+  // comparable: the closed Duo really is half the width of the open one. fit() draws a family
+  // at ONE scale - the one that fits its largest art - so the members keep those proportions
+  // instead of each filling the stage on its own.
+  Object.keys(FAMS).forEach((k) => {
+    FAMS[k].ref = Math.max(...DEVICES.filter((x) => x.fam === k && x.frame)
+      .map((x) => Math.max(x.frame.fw, x.frame.fh, x.frameL ? x.frameL.fw : 0, x.frameL ? x.frameL.fh : 0)));
   });
 
-  const dims = el("span", "df-dims", "");
+  const pick = makePick();
+  const rows = {};
+  // bucket by category first - zfold sits mid-array, so a running "did the cat change" check
+  // would print the Apple header twice
+  const cats = {};
+  DEVICES.forEach((d) => {
+    if (d.fam && famHead(d.fam) !== d) return; // the rest of the family is in the mode list
+    const fam = d.fam ? FAMS[d.fam] : null;
+    if (!cats[d.cat]) { cats[d.cat] = el("div", "df-grp"); pick.list.append(el("div", "df-og", d.cat), cats[d.cat]); }
+    const r = row(fam ? fam.glyph : d.id);
+    r.dataset.id = d.id;
+    r.querySelector(".df-po-name").textContent = fam ? fam.label : d.label;
+    r.addEventListener("click", () => {
+      closePops();
+      const id = fam ? fam.def : d.id;
+      if (id === state.deviceId) return;
+      state.deviceId = id;
+      render(true);
+    });
+    rows[d.id] = r;
+    cats[d.cat].append(r);
+  });
+
+  // view modes for the selected family (hidden for every single-mode device)
+  const modePick = makePick();
+  const modeRows = {};
+  const modeGrp = el("div", "df-grp");
+  modePick.list.append(modeGrp);
+  DEVICES.filter((d) => d.fam).forEach((d) => {
+    const r = row(d.id);
+    r.dataset.id = d.id;
+    r.querySelector(".df-po-name").textContent = d.mode;
+    r.addEventListener("click", () => {
+      closePops();
+      if (d.id === state.deviceId) return;
+      state.deviceId = d.id;
+      render(true);
+    });
+    modeRows[d.id] = r;
+    modeGrp.append(r);
+  });
 
   const custom = el("div", "df-custom");
   const inW = document.createElement("input");
@@ -135,29 +297,24 @@
 
   const rotateBtn = el("button", "df-btn", ICONS.rotate);
   rotateBtn.title = "Rotate portrait / landscape";
-  const sbBtn = el("button", "df-btn", ICONS.contrast);
-  sbBtn.title = "Status bar: dark / light";
   const dlBtn = el("button", "df-btn df-dl", ICONS.download);
-  dlBtn.title = "Download - PNG (transparent) or WebP";
+  dlBtn.title = "Download or copy - PNG / WebP, transparent background";
   const copyBtn = el("button", "df-btn", ICONS.copy);
   copyBtn.title = "Copy image (transparent PNG)";
-  const reloadBtn = el("button", "df-btn", ICONS.reload);
-  reloadBtn.title = "Reload frame";
-  const ghBtn = el("button", "df-btn", ICONS.github);
-  ghBtn.title = "View Emulator on GitHub";
-  const shareBtn = el("button", "df-btn", ICONS.share);
-  shareBtn.title = "Share - upload and get a public link";
   const closeBtn = el("button", "df-btn df-close", ICONS.close);
   closeBtn.title = "Close (Esc)";
 
-  // reload lives in the Safari bar now (for iPhone); keep it in the toolbar for every other device
-  bar.append(brand, el("div", "df-sep"), select, dims, custom, el("div", "df-sep"), rotateBtn, sbBtn, copyBtn, dlBtn, reloadBtn, el("div", "df-sep"), ghBtn, shareBtn, closeBtn);
+  // no reload button: Cmd/Ctrl+R reloads the framed page (and the iPhone's Safari bar has its own)
+  bar.append(brand, el("div", "df-sep"), pick.box, modePick.box, custom, el("div", "df-sep"), rotateBtn, copyBtn, dlBtn, el("div", "df-sep"), closeBtn);
 
   // download menu (PNG / WebP) + toast, both docked under the HUD
   const menu = el("div", "df-menu");
   const miPng = el("button", "df-mi", "<b>PNG</b><span>transparent background</span>");
-  const miWebp = el("button", "df-mi", "<b>WebP</b><span>HD, small file</span>");
-  menu.append(miPng, miWebp);
+  const miWebp = el("button", "df-mi", "<b>WebP</b><span>lossless, half the size</span>");
+  // Chrome's clipboard takes image/png and nothing else - writing image/webp throws
+  // "Type image/webp not supported" - so the copy is always a PNG, and says so.
+  const miCopy = el("button", "df-mi", "<b>Copy</b><span>transparent PNG to clipboard</span>");
+  menu.append(miPng, miWebp, miCopy);
   const toastEl = el("div", "df-toast");
 
   // ---- stage + rig ----
@@ -190,7 +347,7 @@
   // ---- Safari bottom chrome (URL pill + toolbar), for image phones with a `sf` config ----
   const safariBar = el("div", "df-safari");
   const sfPill = el("div", "df-sf-pill");
-  const sfAa = el("span", "df-sf-aa", 'A<span class="df-sf-aa2">A</span>');
+  const sfAa = el("span", "df-sf-aa", glyph("sf-textformat.png", 256, 161, "df-g"));
   const sfLock = el("span", "df-sf-lock", SF_ICONS.lock);
   const sfHost = el("span", "df-sf-host", "");
   const sfMid = el("span", "df-sf-mid");
@@ -213,11 +370,38 @@
   iframe.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
   iframe.allow = "geolocation; microphone; camera; fullscreen; clipboard-read; clipboard-write";
 
+  // ---- iPhone Duo poses: the open bezel cut at the hinge and hinged in 3D ----
+  // A real fold needs two planes, and one iframe cannot sit on two planes - so each half gets
+  // its own copy of the frame art and its own iframe on the same URL. Both render the page at
+  // the same logical width, so the halves line up and read as one continuous screen; scrolling
+  // is mirrored between them whenever the framed page is same-origin.
+  const poseBox = el("div", "df-pose");
+  const poseCam = el("div", "df-pose-cam"); // yaw/pitch for the whole rig - where you stand
+  poseBox.append(poseCam);
+  const makeHalf = () => {
+    const wrap = el("div", "df-pose-half");
+    const pane = el("div", "df-pose-pane");
+    const scr = el("div", "df-screen");
+    const ifr = document.createElement("iframe");
+    ifr.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+    const img = document.createElement("img");
+    img.className = "df-frameimg";
+    const gloss = el("div", "df-pose-shade"); // over the screen, clipped to its rounded rect
+    const shade = el("div", "df-pose-shade"); // over the bezel, masked to the frame art's alpha
+    scr.append(ifr, gloss);
+    pane.append(scr, img, shade);
+    wrap.append(pane);
+    poseCam.append(wrap);
+    return { wrap, pane, scr, ifr, img, gloss, shade };
+  };
+  const halfA = makeHalf();
+  const halfB = makeHalf();
+
   screen.append(iframe, cam, home, crease, blocked);
   device.append(screen, sbScrim, statusbar, safariBar, crown, frameImg);
   bandTop.style.order = "0"; device.style.order = "1"; lapBase.style.order = "2";
   standNeck.style.order = "3"; standFoot.style.order = "4"; bandBot.style.order = "5";
-  rig.append(bandTop, device, lapBase, standNeck, standFoot, bandBot);
+  rig.append(bandTop, device, lapBase, standNeck, standFoot, bandBot, poseBox);
   const spinner = el("div", "df-spinner"); // shown behind/over the device while the page loads
   scaler.append(rig);
   stage.append(backdrop, scaler, spinner);
@@ -234,7 +418,7 @@
 
   // The logical viewport (what the site "sees") for either device kind.
   function logicalDims(d) {
-    if (d.type === "image") {
+    if (d.frame) {
       // synthesized landscape (rotated portrait frame) -> swap the portrait logical dims
       if (d.rot && state.landscape && !d.frameL) {
         const fr = d.frame;
@@ -328,18 +512,23 @@
     device.style.cssText = `position:relative !important;width:${fr.fw}px !important;height:${fr.fh}px !important;background:none !important;border-radius:0 !important;box-shadow:none !important;padding:0 !important;`;
     // screen = the exact screen rect, clipped to rounded corners so nothing pokes past the bezel.
     // Its background fills the status-bar band (like a native app bar); the iframe sits below it.
-    const bandColor = sb ? (state.sbLight ? "#0b0b0c" : "#ffffff") : "transparent";
+    const bandColor = sb ? pageBg() : "transparent";
     // round the BOTTOM corners only (where content used to poke out); the top fills square
     // up under the bezel so there's no black gap / ugly curve behind the status bar.
     const r = fr.sr || 0;
     // Make the iframe a scrollbar-width wider than the screen so the desktop scrollbar lands
     // just past the clipped edge and stays hidden - real devices use space-less overlay bars.
-    const SBW = 17;
+    // Not for Mac displays: a real MacBook hands the page exactly `wl` CSS px, and a page that
+    // never scrolls (so no scrollbar to hide) would lose its last 15px past the bezel.
+    const SBW = d.desk ? 0 : scrollbarWidth();
     // ot = top of the PNG's real screen opening when it sits above oy (iPhone: oy is 150px below
     // the bezel so the status bar clears the island). The screen must cover that cap too, or the
     // island floats on the stage charcoal instead of on the screen. Cap > 0 rounds the top corners.
     const cap = fr.ot != null ? fr.oy - fr.ot : 0;
-    const radius = cap ? `${r}px` : `0 0 ${r}px ${r}px`;
+    // Round all four corners. An Apple Design Resources bezel punches the display out as a
+    // SQUARE hole and paints the rounded corners as art, so a square-cornered screen bleeds
+    // its backing colour out past the device body at the top. Clip to the real corner radius.
+    const radius = `${r}px`;
     screen.style.cssText = `position:absolute !important;left:${fr.ox}px !important;top:${fr.oy - cap}px !important;width:${fr.sw}px !important;height:${fr.sh + cap}px !important;background:${bandColor} !important;border-radius:${radius} !important;overflow:hidden !important;`;
     iframe.style.cssText = `position:absolute !important;left:0 !important;top:${zone + cap}px !important;width:${wl + SBW}px !important;height:${hl}px !important;border:0 !important;background:${pageBg()} !important;transform-origin:0 0 !important;transform:scale(${k}) !important;`;
     frameImg.style.cssText = ""; // clear any landscape-rotation transform
@@ -357,9 +546,52 @@
     placeSafariBar(fr.ox, fr.oy, fr.sw, fr.sh, fr.sf, host, secure, fr.sr);
   }
 
+  // Width a classic (space-taking) scrollbar steals from the framed page. macOS overlay bars
+  // measure 0; widening the iframe by a fixed 17px there just laid the page out off-center.
+  let sbwCache = null;
+  function scrollbarWidth() {
+    if (sbwCache != null) return sbwCache;
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;top:-9999px;width:100px;height:100px;overflow:scroll;";
+    document.body.appendChild(probe);
+    sbwCache = probe.offsetWidth - probe.clientWidth;
+    probe.remove();
+    return sbwCache;
+  }
+
   // Screen fill behind the framed page. Where the page paints nothing (short body, no html
   // background) this shows through, so it follows the status-bar theme: dark by default.
-  const pageBg = () => (state.sbLight ? "#0b0b0c" : "#ffffff");
+  const pageBg = () => state.pageBg || (state.sbLight ? "#0b0b0c" : "#ffffff");
+
+  // iOS picks the status bar style from what is under it. Sample the framed page's own
+  // background at the top of its viewport - same-origin only; a cross-origin page falls back
+  // to the system scheme - then paint the band in that colour with contrasting glyphs. Sampled
+  // at load and once more after the page has had a moment to hydrate.
+  function sampleBg(f) {
+    try {
+      const w = f.contentWindow;
+      const d = w.document;
+      let el = d.elementFromPoint(w.innerWidth / 2, 1) || d.body;
+      for (; el; el = el.parentElement) {
+        const m = w.getComputedStyle(el).backgroundColor.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+        if (m && (m[4] === undefined || +m[4] > 0.5)) return [+m[1], +m[2], +m[3]];
+      }
+      return [255, 255, 255]; // nothing painted - the canvas is white
+    } catch (_) {
+      return null;
+    }
+  }
+  function autoTheme(f) {
+    const rgb = sampleBg(f);
+    const dark = rgb
+      ? (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255 < 0.5
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const bg = rgb ? `rgb(${rgb.join(",")})` : "";
+    if (state.sbLight === dark && state.pageBg === bg) return;
+    state.sbLight = dark;
+    state.pageBg = bg;
+    render(false);
+  }
 
   // The framed page's URL as Safari shows it (host:port + path + query, minus protocol/www);
   // the pill ellipsis-truncates it when it runs past the available width.
@@ -385,7 +617,7 @@
     const zone = sb ? Math.round(sb.top + sb.h) : 0; // status-bar band reserved at top (frame px)
     const sfH = fr.sf ? Math.round(fr.sf.h) : 0; // Safari chrome reserved at bottom (frame px)
     const hl = Math.round((fr.sw - zone - sfH) / k); // logical page height between the two
-    const SBW = 17;
+    const SBW = scrollbarWidth();
 
     rig.setAttribute("data-type", "image");
     [crease, lapBase, standNeck, standFoot, bandTop, bandBot, crown, home, cam].forEach((n) =>
@@ -404,7 +636,7 @@
     const sW = fr.sh + cap;
     const sH = fr.sw;
     const r = fr.sr || 0;
-    const bandColor = sb ? (state.sbLight ? "#0b0b0c" : "#ffffff") : "#000";
+    const bandColor = sb ? pageBg() : "#000";
     screen.style.cssText = `position:absolute !important;left:${sLeft}px !important;top:${sTop}px !important;width:${sW}px !important;height:${sH}px !important;background:${bandColor} !important;border-radius:${r}px !important;overflow:hidden !important;`;
     iframe.style.cssText = `position:absolute !important;left:0 !important;top:${zone}px !important;width:${wl + SBW}px !important;height:${hl}px !important;border:0 !important;background:${pageBg()} !important;transform-origin:0 0 !important;transform:scale(${k}) !important;`;
 
@@ -437,7 +669,7 @@
     // zone = status-bar band the page sits below; SBW widens the iframe so the desktop
     // scrollbar lands just past the clipped edge and stays hidden (like a real device).
     const zone = d.sb && !land ? d.sb.top + d.sb.h : 0;
-    const SBW = 17;
+    const SBW = scrollbarWidth();
     screen.style.position = "relative";
     screen.style.width = w + "px";
     screen.style.height = h + "px";
@@ -487,28 +719,178 @@
     sbScrim.style.setProperty("display", "none", "important");
   }
 
+  // Fold the open bezel into one of the Duo poses. Each half is a 3D plane pinned at the hinge:
+  // a full copy of the flat render, clipped to its side of the art, rotated about the hinge line.
+  // The box is sized to the PROJECTED bounds (perspective magnifies whatever leans forward) so
+  // fit() scales a pose like any other device and capture() crops it whole.
+  const deg2rad = (t) => (t * Math.PI) / 180;
+  // Two planes that meet exactly on the hinge leave a hairline (and a notch in the bezel) as
+  // soon as they rotate apart. Each half carries BLEED px of art PAST the hinge so they overlap
+  // and connect back into one body - at 3x art that is ~3 logical px of shared page, invisible.
+  const BLEED = 10;
+  // While the two copies load, neither is cut at the hinge and the rig is invisible: the page's
+  // own IntersectionObserver treats a hinge clip as "off screen", so a copy that only shows its
+  // half of the rows would lazy-mount different sections than its twin and the two would end
+  // up different heights. Unclipped, both see the same full viewport and mount the same things;
+  // the clip goes on once both have landed. After that, scrolling keeps them equal because a
+  // section always enters the leader's band before it reaches the crease.
+  let poseUnclipped = false;
+  const poseLoaded = new Set();
+  function renderPose(d) {
+    const fr = d.frame;
+    const wl = d.wl;
+    const vert = d.axis === "y";
+    const half = (vert ? fr.fw : fr.fh) / 2; // the hinge runs down the middle of the art
+    // a solo pose lays the page out to the width of the half you actually see
+    const k = (vert && d.solo ? half - fr.ox : fr.sw) / wl; // logical px -> frame px
+    const sb = d.sbHalf ? fr.sb : null;
+    const zone = sb ? Math.round(sb.top + sb.h) : 0; // status-bar band, reserved on BOTH halves
+    // The rect of art the page paints into. Normally the whole screen, both halves live and the
+    // page runs across the crease. A `solo` pose hands the page to the half that faces the
+    // viewer and leaves the other dark, so the page is laid out to the panel you actually see.
+    const px0 = vert && d.solo === 2 ? half : fr.ox;
+    const px1 = vert && d.solo === 1 ? half : fr.ox + fr.sw;
+    const py0 = !vert && d.solo === 2 ? half : fr.oy;
+    const py1 = !vert && d.solo === 1 ? half : fr.oy + fr.sh;
+    const hl = Math.round((py1 - py0 - zone) / k);
+    const P = d.persp;
+    const yaw = deg2rad(d.yaw || 0);
+    const pitch = deg2rad(d.pitch || 0);
+    const cross = (vert ? fr.fh : fr.fw) / 2; // half the art ACROSS the hinge
+
+    // Project a point of one half - measured from the hinge - through the whole chain: the
+    // half's own hinge rotation, then the camera, then perspective. Sizing the box off the real
+    // projected bounds is what keeps fit() honest and stops capture() clipping a near corner.
+    const project = (u, v, angle) => {
+      const t = deg2rad(angle); // u runs out from the hinge, v across it
+      let x = vert ? u * Math.cos(t) : v;
+      let y = vert ? v : u * Math.cos(t);
+      let z = vert ? -u * Math.sin(t) : u * Math.sin(t);
+      const xy = x * Math.cos(yaw) + z * Math.sin(yaw);
+      z = -x * Math.sin(yaw) + z * Math.cos(yaw);
+      x = xy;
+      const yp = y * Math.cos(pitch) - z * Math.sin(pitch);
+      z = y * Math.sin(pitch) + z * Math.cos(pitch);
+      y = yp;
+      const m = P / Math.max(P - z, P * 0.2); // perspective magnification at that depth
+      return [x * m, y * m];
+    };
+    const pts = [];
+    [[-half, d.a], [half, d.b]].forEach(([u, angle]) => {
+      [0, u].forEach((uu) => [-cross, cross].forEach((vv) => pts.push(project(uu, vv, angle))));
+    });
+    const minX = Math.min(...pts.map((q) => q[0]));
+    const maxX = Math.max(...pts.map((q) => q[0]));
+    const minY = Math.min(...pts.map((q) => q[1]));
+    const maxY = Math.max(...pts.map((q) => q[1]));
+    const W = Math.round(maxX - minX);
+    const H = Math.round(maxY - minY);
+    const hx = Math.round(-minX); // where the hinge lands inside the box
+    const hy = Math.round(-minY);
+
+    rig.setAttribute("data-type", "pose");
+    device.style.setProperty("display", "none", "important");
+    [crease, lapBase, standNeck, standFoot, bandTop, bandBot].forEach((n) =>
+      n.style.setProperty("display", "none", "important")
+    );
+    poseBox.style.cssText =
+      `display:block !important;position:relative !important;width:${W}px !important;height:${H}px !important;` +
+      `opacity:${poseUnclipped ? 0 : 1} !important;` +
+      `perspective:${P}px !important;perspective-origin:${hx}px ${hy}px !important;`;
+    poseCam.style.cssText =
+      `position:absolute !important;inset:0 !important;transform-style:preserve-3d !important;` +
+      `transform-origin:${hx}px ${hy}px !important;` +
+      `transform:rotateX(${d.pitch || 0}deg) rotateY(${d.yaw || 0}deg) !important;`;
+
+    const SBW = scrollbarWidth();
+    const url = FRAMES_BASE + fr.file;
+    [{ h: halfA, ang: d.a, first: true }, { h: halfB, ang: d.b, first: false }].forEach((s2) => {
+      const { h, ang, first } = s2;
+      // clip box: from the outer edge to BLEED px PAST the hinge, with the hinge (the rotation
+      // axis) pinned at its real place inside that box
+      const lead = first ? -half : -BLEED;
+      const span = half + BLEED;
+      const pin = first ? half : BLEED;
+      // Cut at the hinge with a MASK, not overflow:hidden or clip-path. Those count as
+      // clipping for an IntersectionObserver inside the page, so each copy would only "see" its
+      // own rows and lazy-mounted sections would land in one half and not the other - the two
+      // halves then differ in height and the crease stops lining up. A mask is paint only: the
+      // page sees its whole viewport in both halves and mounts the same things.
+      const cut = poseUnclipped ? "none" : "linear-gradient(#000,#000) 0 0/100% 100% no-repeat";
+      h.wrap.style.cssText =
+        `position:absolute !important;-webkit-mask:${cut} !important;mask:${cut} !important;` +
+        (vert
+          ? `left:${hx + lead}px !important;top:${hy - cross}px !important;width:${span}px !important;height:${fr.fh}px !important;`
+          : `top:${hy + lead}px !important;left:${hx - cross}px !important;width:${fr.fw}px !important;height:${span}px !important;`) +
+        `transform-origin:${vert ? pin + "px 50%" : "50% " + pin + "px"} !important;` +
+        `transform:rotate${vert ? "Y" : "X"}(${ang}deg) !important;`;
+      h.pane.style.cssText =
+        `position:absolute !important;width:${fr.fw}px !important;height:${fr.fh}px !important;` +
+        (vert
+          ? `left:${first ? 0 : BLEED - half}px !important;top:0 !important;`
+          : `top:${first ? 0 : BLEED - half}px !important;left:0 !important;`);
+      h.scr.style.cssText =
+        `position:absolute !important;left:${fr.ox}px !important;top:${fr.oy}px !important;` +
+        `width:${fr.sw}px !important;height:${fr.sh}px !important;background:${pageBg()} !important;` +
+        `border-radius:${fr.sr || 0}px !important;overflow:hidden !important;`;
+      // the dark half of a solo pose keeps its bezel but drops the page entirely
+      const lit = !d.solo || d.solo === (first ? 1 : 2);
+      h.ifr.style.cssText =
+        `position:absolute !important;left:${px0 - fr.ox}px !important;top:${py0 - fr.oy + zone}px !important;` +
+        `width:${wl + SBW}px !important;height:${hl}px !important;border:0 !important;` +
+        `display:${lit ? "block" : "none"} !important;` +
+        `background:${pageBg()} !important;transform-origin:0 0 !important;transform:scale(${k}) !important;`;
+      h.img.style.setProperty("display", "block", "important");
+      if (h.img.getAttribute("src") !== url) h.img.src = url;
+      // the hinge edge of each half falls into shadow, and a half turned away from the viewer
+      // dims overall - together that is what reads as a bend rather than two flat pictures
+      const dim = (1 - Math.cos(deg2rad(ang))) * 0.62;
+      const dir = vert ? (first ? 90 : 270) : first ? 180 : 0;
+      const wash =
+        `background:linear-gradient(${dir}deg, rgba(0,0,0,${(dim * 0.8).toFixed(3)}) 35%, ` +
+        `rgba(0,0,0,${Math.min(0.88, dim + 0.2).toFixed(3)}) 100%) !important;`;
+      h.gloss.style.cssText =
+        `position:absolute !important;inset:0 !important;z-index:8 !important;pointer-events:none !important;` + wash;
+      // masking to the PNG keeps the wash on the device instead of on the stage behind it
+      h.shade.style.cssText =
+        `position:absolute !important;inset:0 !important;z-index:7 !important;pointer-events:none !important;` +
+        `-webkit-mask:url("${url}") center/100% 100% no-repeat !important;` +
+        `mask:url("${url}") center/100% 100% no-repeat !important;` + wash;
+    });
+
+    // The status bar rides the half that faces the viewer. On a vertical hinge it only owns its
+    // own half, so the clock lands just off the crease instead of being clipped away with it.
+    if (sb) {
+      const host = d.sbHalf === 2 ? halfB : halfA;
+      if (statusbar.parentNode !== host.pane) host.pane.appendChild(statusbar);
+      placeStatusBar(px0, py0, px1 - px0, sb);
+    } else {
+      placeStatusBar(0, 0, 0, null);
+    }
+    sbScrim.style.setProperty("display", "none", "important");
+    placeSafariBar(0, 0, 0, 0, null);
+  }
+
   function render(reloadSrc) {
     const d = current();
-    if (d.type === "image") renderImage(d);
+    if (d.type !== "pose") poseBox.style.setProperty("display", "none", "important");
+    if (d.type === "pose") renderPose(d);
+    else if (d.type === "image") renderImage(d);
     else renderDrawn(d);
 
-    const dim = logicalDims(d);
-    const hasSb =
-      d.type === "image"
-        ? !!(state.landscape && d.frameL ? d.frameL.sb : d.frame && d.frame.sb)
-        : !!(d.sb && !state.landscape);
     rotateBtn.disabled = !d.rot;
     rotateBtn.classList.toggle("df-active", !!(d.rot && state.landscape));
-    sbBtn.disabled = !hasSb;
-    sbBtn.classList.toggle("df-active", hasSb && state.sbLight);
     custom.classList.toggle("df-show", d.id === "custom");
-    // hide the toolbar reload when the device has its own working reload in the Safari bar
-    const hasSafari = d.type === "image" && !!(state.landscape && d.frameL ? d.frameL.sf : d.frame && d.frame.sf);
-    reloadBtn.style.setProperty("display", hasSafari ? "none" : "inline-flex", "important");
     root.classList.toggle("df-desk", !!d.desk); // wallpaper backdrop for Mac displays only
-    dims.style.display = d.id === "custom" ? "none" : "inline-flex";
-    dims.textContent = `${dim.w} × ${dim.h}`;
-    select.value = d.id;
+    const fam = d.fam ? FAMS[d.fam] : null;
+    pick.icon.innerHTML = devGlyph(fam ? fam.glyph : d.id);
+    pick.label.textContent = fam ? fam.label : d.label;
+    modePick.box.style.setProperty("display", fam ? "block" : "none", "important");
+    modePick.icon.innerHTML = devGlyph(d.id);
+    modePick.label.textContent = d.mode || "";
+    const rowId = d.fam ? famHead(d.fam).id : d.id;
+    Object.keys(rows).forEach((k) => rows[k].classList.toggle("df-on", k === rowId));
+    Object.keys(modeRows).forEach((k) => modeRows[k].classList.toggle("df-on", k === d.id));
 
     if (reloadSrc) {
       blocked.classList.remove("df-show");
@@ -516,7 +898,13 @@
       sfProg.classList.remove("df-done");
       void sfProg.offsetWidth; // restart the line from 0 on every reload
       sfProg.classList.add("df-go");
-      iframe.src = window.__DF_SRC || location.href; // __DF_SRC lets preview.html swap the page
+      // __DF_SRC lets preview.html swap the page. Only the active renderer holds it - the idle
+      // one drops to about:blank so the framed site is never left running twice in the dark.
+      const src = window.__DF_SRC || location.href;
+      const folded = d.type === "pose";
+      iframe.src = folded ? "about:blank" : src;
+      if (folded) { poseUnclipped = true; poseLoaded.clear(); }
+      halfA.ifr.src = halfB.ifr.src = folded ? src : "about:blank";
       clearTimeout(loadTimer);
       loadTimer = setTimeout(() => {
         spinner.classList.remove("df-show");
@@ -527,8 +915,9 @@
   }
 
   // Rotate portrait <-> landscape with a real spin: the current render turns 90deg (CW into
-  // landscape, back CCW) while scaling to the other orientation's fit, then the true layout is
-  // swapped in underneath with transitions off. Both fill the same on-screen box, so no jump.
+  // landscape, back CCW), then the true layout is swapped in underneath with transitions off.
+  // fitScale() is orientation-independent for rotatable devices, so this is a pure spin - the
+  // device never changes size - and the swap lands on the same scale with no jump.
   let rotating = false;
   function rotate() {
     const d = current();
@@ -537,7 +926,7 @@
     const toLand = !state.landscape;
     const rw = rig.offsetWidth || 1;
     const rh = rig.offsetHeight || 1;
-    const next = Math.min(Math.min((stage.clientWidth - 24) / rh, (stage.clientHeight - 24) / rw), 1) * 0.8;
+    const next = fitScale(rw, rh, d);
     scaler.style.setProperty("transition", "transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)", "important");
     scaler.style.transform = `scale(${next}) rotate(${toLand ? 90 : -90}deg)`;
     let done = false;
@@ -556,18 +945,24 @@
     setTimeout(finish, 650); // transitionend can be swallowed (tab hidden) - never get stuck
   }
 
-  function fit() {
-    const rw = rig.offsetWidth || 1;
-    const rh = rig.offsetHeight || 1;
+  // Scale that fits the rig in the stage. A rotatable device is measured off its LONG side
+  // against the stage's SHORT side, so portrait and landscape resolve to the same number and
+  // rotating spins the device without resizing it. Fixed devices just fit their own box.
+  function fitScale(rw, rh, d) {
     const availW = stage.clientWidth - 24;
     const availH = stage.clientHeight - 24;
-    // Fit the rig's CURRENT box (portrait or landscape) to the stage. Scaling rotatable devices
-    // off their long side kept the size constant across rotation but left landscape tiny
-    // (~38% of the stage), so each orientation now fills the stage on its own.
-    const base = Math.min(availW / rw, availH / rh);
+    const fam = d && d.fam ? FAMS[d.fam] : null;
+    const base = fam
+      ? Math.min(Math.min(availW, availH) / fam.ref, availW / rw, availH / rh) // family scale, never overflowing
+      : d && d.rot
+        ? Math.min(availW, availH) / Math.max(rw, rh)
+        : Math.min(availW / rw, availH / rh);
     // 0.8 = sit the device at 80% so it's smaller with breathing room, centered in the stage
-    const scale = Math.min(base, 1) * 0.8;
-    scaler.style.transform = `scale(${scale})`;
+    return Math.min(base, 1) * 0.8;
+  }
+
+  function fit() {
+    scaler.style.transform = `scale(${fitScale(rig.offsetWidth || 1, rig.offsetHeight || 1, current())})`;
   }
 
   // ---- export: PNG (transparent) / WebP / copy / share ----
@@ -611,6 +1006,92 @@
     canvas.height = sh;
     canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
     return { canvas, ox: sx, oy: sy, dpr, d, dim };
+  }
+
+  // ---- native-resolution export ----
+  // captureVisibleTab only ever hands back SCREEN pixels, so cropping a screenshot exports the
+  // device at whatever fraction of its art fit() happened to shrink it to - measured at 79% of
+  // the frame art on a Retina laptop and 39% on a 1x external monitor, which is not something
+  // you want to post anywhere. For an image-frame device the export is REBUILT instead: the
+  // bezel is redrawn from its own PNG at 1:1, so it is always pixel-exact, and only the page
+  // inside the opening comes from a capture - taken with the rig blown up until one screen
+  // pixel covers at least one frame pixel. When the blown-up opening no longer fits the window
+  // it is captured in tiles and stitched. Each tile is cropped by the opening's MEASURED rect,
+  // so none of this depends on where flexbox centred the device.
+  const XPAD = 26; // shadow room around the device, in frame px
+  const frameOf = (d) => (d.rot && state.landscape && d.frameL ? d.frameL : d.frame);
+  // a rotate-synthesised landscape spins the art with CSS and has no 1:1 source to redraw
+  const nativeOk = (d) => d.type === "image" && d.frame && !(d.rot && state.landscape && !d.frameL);
+
+  async function captureNative(d) {
+    const fr = frameOf(d);
+    const dpr = window.devicePixelRatio || 1;
+    const availW = Math.max(1, stage.clientWidth - 24);
+    const availH = Math.max(1, stage.clientHeight - 24);
+    // never below 1 device pixel per frame pixel; take more when the window allows it
+    const S = Math.max(1 / dpr, Math.min(availW / fr.sw, availH / fr.sh));
+    const W = fr.sw * S;
+    const H = fr.sh * S;
+    const cols = Math.max(1, Math.ceil(W / availW - 1e-6));
+    const rows = Math.max(1, Math.ceil(H / availH - 1e-6));
+
+    const shot = document.createElement("canvas");
+    shot.width = fr.sw;
+    shot.height = fr.sh;
+    const g = shot.getContext("2d");
+
+    const prev = scaler.style.transform;
+    root.classList.add("df-capturing");
+    scaler.style.setProperty("transition", "none", "important");
+    try {
+      for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+          // centre this tile's slice of the opening in the stage
+          const tx = -((i + 0.5) * (W / cols) - W / 2);
+          const ty = -((j + 0.5) * (H / rows) - H / 2);
+          scaler.style.transform = `translate(${tx}px, ${ty}px) scale(${S})`;
+          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          // captureVisibleTab is rate-limited to 2 calls/sec; a single shot needs no wait
+          await new Promise((r) => setTimeout(r, cols * rows > 1 ? 560 : 80));
+          const r0 = screen.getBoundingClientRect();
+          let resp;
+          try { resp = await chrome.runtime.sendMessage({ type: "df-capture" }); } catch (e) { resp = { error: e && e.message }; }
+          const img = resp && resp.dataUrl ? await loadImage(resp.dataUrl).catch(() => null) : null;
+          if (!img) { console.warn("[Emulator] tile capture failed:", resp && resp.error); return null; }
+          // the part of the opening this tile actually shows, clipped to the window
+          const vx = Math.max(r0.left, 0);
+          const vy = Math.max(r0.top, 0);
+          const vr = Math.min(r0.right, window.innerWidth);
+          const vb = Math.min(r0.bottom, window.innerHeight);
+          if (vr <= vx || vb <= vy) continue;
+          g.drawImage(img,
+            vx * dpr, vy * dpr, (vr - vx) * dpr, (vb - vy) * dpr,
+            ((vx - r0.left) / r0.width) * fr.sw, ((vy - r0.top) / r0.height) * fr.sh,
+            ((vr - vx) / r0.width) * fr.sw, ((vb - vy) / r0.height) * fr.sh);
+        }
+      }
+    } finally {
+      scaler.style.transform = prev;
+      scaler.style.removeProperty("transition");
+      root.classList.remove("df-capturing");
+    }
+
+    const bmp = await createImageBitmap(await (await fetch(FRAMES_BASE + fr.file)).blob()).catch(() => null);
+    if (!bmp) return null;
+    const out = document.createElement("canvas");
+    out.width = fr.fw + XPAD * 2;
+    out.height = fr.fh + XPAD * 2;
+    const o = out.getContext("2d");
+    o.save(); // clip the page to the opening's painted corner radius
+    o.beginPath();
+    o.roundRect(XPAD + fr.ox, XPAD + fr.oy, fr.sw, fr.sh, fr.sr || 0);
+    o.clip();
+    o.drawImage(shot, XPAD + fr.ox, XPAD + fr.oy);
+    o.restore();
+    // the bezel punches its own display out, so drawing it on top leaves the surround
+    // transparent - no knock-out mask needed on this path
+    o.drawImage(bmp, XPAD, XPAD, fr.fw, fr.fh);
+    return out;
   }
 
   // Knock the stage out so only the device is left: keep the frame PNG's opaque pixels (or the
@@ -661,7 +1142,25 @@
     return out;
   }
 
-  const fileName = (cap, ext) => `emulator-${cap.d.id}-${cap.dim.w}x${cap.dim.h}.${ext}`;
+  // One canvas for every exporter: native rebuild where the device has 1:1 art, cropped
+  // screenshot otherwise (drawn bezels, Duo poses, rotate-synthesised landscape).
+  async function exportCanvas() {
+    if (capturing) return null;
+    const d = current();
+    if (nativeOk(d)) {
+      capturing = true;
+      let c;
+      try { c = await captureNative(d); } finally { capturing = false; }
+      if (c) return { canvas: c, d };
+    }
+    const cap = await capture();
+    if (!cap) return null;
+    return { canvas: await transparent(cap), d: cap.d };
+  }
+
+  // Name by the pixels actually written, not the logical viewport - the whole point is that
+  // you can see what you are about to post.
+  const fileName = (x, ext) => `emulator-${x.d.id}-${x.canvas.width}x${x.canvas.height}.${ext}`;
   function save(blob, name) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -670,21 +1169,27 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
   async function exportPng() {
-    const cap = await capture();
-    if (!cap) return;
-    save(await toBlob(await transparent(cap), "image/png"), fileName(cap, "png"));
-    toast("PNG saved - transparent background");
+    const x = await exportCanvas();
+    if (!x) return;
+    save(await toBlob(x.canvas, "image/png"), fileName(x, "png"));
+    toast(`PNG saved - ${x.canvas.width} x ${x.canvas.height}, transparent`);
   }
   async function exportWebp() {
-    const cap = await capture();
-    if (!cap) return;
-    save(await toBlob(cap.canvas, "image/webp", 0.92), fileName(cap, "webp"));
-    toast("WebP saved");
+    const x = await exportCanvas();
+    if (!x) return;
+    // WebP carries alpha, so it gets the same transparent surround as the PNG - it used to
+    // save cap.canvas raw, which baked the stage backdrop into the file.
+    // quality 1 is the one value Chromium encodes LOSSLESS at - every opaque pixel comes back
+    // bit-exact, at roughly half a PNG. It used to be 0.92, which is fine for photos and wrong
+    // for a screenshot: 3% of pixels shifted, all of it on the small text a UI shot is made of,
+    // and anything that re-encodes on upload (LinkedIn, X) compounds that first loss.
+    save(await toBlob(x.canvas, "image/webp", 1), fileName(x, "webp"));
+    toast(`WebP saved - ${x.canvas.width} x ${x.canvas.height}, lossless`);
   }
   async function copyPng() {
-    const cap = await capture();
-    if (!cap) return;
-    const png = await transparent(cap);
+    const x = await exportCanvas();
+    if (!x) return;
+    const png = x.canvas;
     try {
       if (!navigator.clipboard || !window.isSecureContext) throw new Error("insecure context");
       const blob = await toBlob(png, "image/png");
@@ -706,35 +1211,6 @@
 
   // Share: upload a WebP of the device to bunlongheng.com and hand back a public link.
   // The upload goes through the service worker (extension origin, no CORS dance).
-  const blobToBase64 = (blob) =>
-    new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = () => res(String(fr.result).split(",")[1] || "");
-      fr.onerror = rej;
-      fr.readAsDataURL(blob);
-    });
-  async function share() {
-    const cap = await capture();
-    if (!cap) return;
-    shareBtn.disabled = true;
-    toast("Uploading…", 8000);
-    try {
-      const blob = await toBlob(cap.canvas, "image/webp", 0.9);
-      const data = await blobToBase64(blob);
-      let page = "";
-      try { const u = new URL(window.__DF_SRC || location.href, location.href); page = u.host + u.pathname; } catch (_) {}
-      const body = { device: cap.d.label, url: page, width: cap.canvas.width, height: cap.canvas.height, mime: "image/webp", data };
-      const resp = await chrome.runtime.sendMessage({ type: "df-share", body });
-      if (!resp || !resp.ok || !resp.url) throw new Error((resp && resp.error) || "upload failed");
-      try { await navigator.clipboard.writeText(resp.url); } catch (_) {}
-      toast("Link copied - ", 6000, resp.url);
-      flash(shareBtn);
-    } catch (e) {
-      toast("Share failed - " + ((e && e.message) || "unknown error"), 4000);
-    }
-    shareBtn.disabled = false;
-  }
-
   let toastTimer = null;
   function toast(msg, ms = 2200, href) {
     toastEl.textContent = msg;
@@ -753,30 +1229,214 @@
   const flash = (btn) => { btn.classList.add("df-active"); setTimeout(() => btn.classList.remove("df-active"), 1200); };
 
   // ---- events ----
-  iframe.addEventListener("load", () => {
+  // Fires for whichever renderer is holding the page; the idle one parks on about:blank and
+  // must not call the load off early.
+  const onPageLoad = (e) => {
+    if (e.target.getAttribute("src") === "about:blank") return;
+    const f = e.target; // the event's target is gone by the time the timer fires
+    autoTheme(f);
+    setTimeout(() => { if (f.getAttribute("src") !== "about:blank") autoTheme(f); }, 700);
     clearTimeout(loadTimer);
     blocked.classList.remove("df-show");
     spinner.classList.remove("df-show"); // page arrived - stop the spinner
     sfProg.classList.remove("df-go");
     sfProg.classList.add("df-done"); // run the blue line to the end, then fade it
-  });
-  select.addEventListener("change", () => { state.deviceId = select.value; render(true); });
+  };
+  [iframe, halfA.ifr, halfB.ifr].forEach((f) => f.addEventListener("load", onPageLoad));
+
+  // Keep a folded pose reading as ONE screen. The halves render the same page at the same
+  // width, so the half that last took input LEADS and the other FOLLOWS - one direction at a
+  // time (scroll events fire async, so a two-way mirror behind a flag echoed A->B->A). What
+  // gets copied is STATE, not input: every scroller the leader moves (window or nested) is set
+  // to the same offset on its twin, instantly, every frame - so a page's own smooth scroll
+  // (CSS scroll-behavior, scrollIntoView, Lenis-style) animates in the leader and the follower
+  // just tracks it. A synthetic wheel never scrolls anything natively, so the wheel is
+  // forwarded ONLY to a page proven to eat it without moving any scroller (fullpage-style snaps
+  // on transforms) - there the same input is the only route to the same frame. Readable only
+  // while the framed page is same-origin (the extension's usual case - it frames the tab it is
+  // injected into); cross-origin halves just scroll on their own.
+  const halves = [halfA.ifr, halfB.ifr];
+  const twinIfr = (f) => (f === halfA.ifr ? halfB.ifr : halfA.ifr);
+  const docOf = (f) => { try { return f.contentWindow.document; } catch (_) { return null; } };
+  let leader = halfA.ifr;
+  let lastInput = 0; // when the leader last got pointer/wheel input - gates the canvas copy
+  let wheelDriven = false; // the page swallowed a wheel without scrolling - forward wheels
+  let wheelProbe = 0; // pending "did that wheel move anything?" check
+  let moved = false; // a leader scroller moved since the last wheel
+
+  // Same page, same width, same tree: a node's twin sits at the same child-index path (its id
+  // when it has one). "" is the document scroller itself.
+  const pathOf = (n) => {
+    const d = n.ownerDocument;
+    if (n === d.scrollingElement || n === d.documentElement) return "";
+    if (n.id) return "#" + d.defaultView.CSS.escape(n.id);
+    const p = [];
+    for (let e = n; e && e !== d.documentElement; e = e.parentElement) {
+      p.unshift(Array.prototype.indexOf.call(e.parentNode.children, e));
+    }
+    return p.join("/");
+  };
+  const twinOf = (n, d) => {
+    const path = pathOf(n);
+    if (path === "") return d.scrollingElement;
+    if (path[0] === "#") return d.querySelector(path);
+    let e = d.documentElement;
+    for (const i of path.split("/")) e = e && e.children[i];
+    return e || null;
+  };
+  const scrollerOf = (e, d) => (e.target === d ? d.scrollingElement : e.target);
+
+  const copyScroll = (n, from) => {
+    const td = docOf(twinIfr(from));
+    const t = td && twinOf(n, td);
+    if (!t) return;
+    const x = n.scrollLeft;
+    const y = n.scrollTop;
+    // The value check is the echo guard: the follower only ever holds what we set, so when it
+    // takes the lead it has nothing new to push back. "instant" overrides the page's own
+    // scroll-behavior:smooth on the follower - the leader already did the easing.
+    if (t.scrollLeft !== x || t.scrollTop !== y) t.scrollTo({ left: x, top: y, behavior: "instant" });
+  };
+  const forwardWheel = (e, to) => {
+    const td = docOf(to);
+    if (!td) return;
+    const t = (e.target.nodeType === 1 && twinOf(e.target, td)) || td.documentElement;
+    t.dispatchEvent(new to.contentWindow.WheelEvent("wheel", {
+      deltaX: e.deltaX, deltaY: e.deltaY, deltaZ: e.deltaZ, deltaMode: e.deltaMode,
+      clientX: e.clientX, clientY: e.clientY, bubbles: true, cancelable: true, composed: true,
+    }));
+  };
+
+  const attachSync = (f) => {
+    const d = docOf(f);
+    if (!d || d.__dfSync) return; // cross-origin, or this document is already wired
+    d.__dfSync = true;
+    const w = d.defaultView;
+    const opts = { capture: true, passive: true };
+    // Leadership moves on INTENT, not hover - crossing the crease mid-animation must not
+    // orphan a smooth scroll that is still running in the other half.
+    // Only a REAL pointer hands over the lead - the copies we dispatch into the twin must not,
+    // or the first mirrored pointerdown would flip leadership and drop the rest of the stroke.
+    const lead = (e) => { if (e.isTrusted) leader = f; };
+    ["pointerdown", "touchstart", "keydown", "focusin"].forEach((t) => d.addEventListener(t, lead, opts));
+    // scroll does not bubble but it does capture: one listener sees window AND nested scrollers
+    d.addEventListener("scroll", (e) => {
+      if (leader !== f) return;
+      moved = true;
+      wheelDriven = false; // it scrolls after all - stop feeding it the wheel
+      copyScroll(scrollerOf(e, d), f);
+    }, opts);
+    d.addEventListener("scrollend", (e) => { if (leader === f) copyScroll(scrollerOf(e, d), f); }, opts);
+    // The pointer goes to the twin too, so the page's own handlers run in both copies - a
+    // stroke on a canvas, a hover, a menu, a button - one screen, not two. Synthetic events are
+    // never re-mirrored (isTrusted), and a click inside a form stays put so nothing submits twice.
+    const POINTER = ["pointerdown", "pointermove", "pointerup", "pointercancel", "mousedown", "mousemove", "mouseup", "click"];
+    POINTER.forEach((t) => d.addEventListener(t, (e) => {
+      if (!e.isTrusted || leader !== f) return;
+      if (t !== "pointermove" && t !== "mousemove") lastInput = Date.now();
+      if (t === "click" && e.target.closest && e.target.closest("form")) return;
+      const tw = twinIfr(f);
+      const td = docOf(tw);
+      if (!td) return;
+      const target = (e.target.nodeType === 1 && twinOf(e.target, td)) || td.documentElement;
+      const Ctor = e instanceof w.PointerEvent ? tw.contentWindow.PointerEvent : tw.contentWindow.MouseEvent;
+      target.dispatchEvent(new Ctor(t, {
+        clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY,
+        button: e.button, buttons: e.buttons, pointerId: e.pointerId, pointerType: e.pointerType,
+        isPrimary: e.isPrimary, pressure: e.pressure, width: e.width, height: e.height,
+        ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey,
+        bubbles: true, cancelable: true, composed: true,
+      }));
+    }, opts));
+    // A mirrored pointer has no real pointer behind it, so a page that captures it on
+    // pointerdown (every drawing app) would throw and drop the stroke. Let that call fail quietly.
+    const proto = w.Element.prototype;
+    ["setPointerCapture", "releasePointerCapture"].forEach((k) => {
+      const orig = proto[k];
+      proto[k] = function (id) { try { return orig.call(this, id); } catch (_) { return undefined; } };
+    });
+    d.addEventListener("wheel", (e) => {
+      if (!e.isTrusted) return; // a forwarded wheel is never forwarded again
+      leader = f;
+      lastInput = Date.now();
+      if (wheelDriven) { forwardWheel(e, twinIfr(f)); return; }
+      // Probe: give the page a few frames. If no scroller moved, it ate the wheel itself -
+      // forward this one late and every later one straight away.
+      moved = false;
+      clearTimeout(wheelProbe);
+      wheelProbe = setTimeout(() => {
+        if (moved || leader !== f) return;
+        wheelDriven = true;
+        forwardWheel(e, twinIfr(f));
+      }, 120);
+    }, opts);
+    // an anchor jump in the leader lands the follower on the same anchor (its scroll follows)
+    w.addEventListener("hashchange", () => {
+      if (leader !== f) return;
+      try {
+        const tl = twinIfr(f).contentWindow.location;
+        if (tl.hash !== w.location.hash) tl.hash = w.location.hash;
+      } catch (_) {}
+    });
+  };
+  // Wire each new document as it lands, and take the follower along on a full navigation
+  // (a link followed in the leader). Only the leader pushes, so a redirect cannot ping-pong.
+  const onHalfLoad = (e) => {
+    const f = e.target;
+    if (f.getAttribute("src") === "about:blank") return;
+    attachSync(f);
+    poseLoaded.add(f);
+    if (poseUnclipped && poseLoaded.size === 2) {
+      // a beat for the observers to fire on the full viewport, then cut and show
+      setTimeout(() => {
+        poseUnclipped = false;
+        if (current().type === "pose") render(false);
+      }, 150);
+    }
+    const d = docOf(f);
+    const tw = twinIfr(f);
+    const td = docOf(tw);
+    if (f === leader && d && tw.src !== d.URL && (!td || td.URL !== d.URL)) tw.src = d.URL;
+  };
+  halves.forEach((f) => f.addEventListener("load", onHalfLoad));
+  // What the page paints itself has to be carried over as well: a mirrored stroke can still
+  // land a pixel off, and a canvas keeps no DOM state to copy. While the leader is being used,
+  // every canvas it has is drawn onto the twin's each frame - same-origin only, 2d twins only
+  // (a WebGL canvas will not hand out a 2d context, and is skipped).
+  const copyCanvases = () => {
+    if (!root.isConnected) return;
+    if (current().type === "pose" && Date.now() - lastInput < 800) {
+      const d = docOf(leader);
+      const td = docOf(twinIfr(leader));
+      if (d && td) {
+        d.querySelectorAll("canvas").forEach((c) => {
+          const t = twinOf(c, td);
+          if (!t || t.tagName !== "CANVAS" || !c.width || !c.height) return;
+          const ctx = t.getContext("2d");
+          if (!ctx) return;
+          if (t.width !== c.width || t.height !== c.height) { t.width = c.width; t.height = c.height; }
+          ctx.clearRect(0, 0, t.width, t.height);
+          ctx.drawImage(c, 0, 0);
+        });
+      }
+    }
+    requestAnimationFrame(copyCanvases);
+  };
+  requestAnimationFrame(copyCanvases);
   rotateBtn.addEventListener("click", rotate);
-  sbBtn.addEventListener("click", () => { state.sbLight = !state.sbLight; render(false); });
-  dlBtn.addEventListener("click", (e) => { e.stopPropagation(); menu.classList.toggle("df-show"); });
+  dlBtn.addEventListener("click", (e) => { e.stopPropagation(); closePops(); menu.classList.toggle("df-show"); });
   miPng.addEventListener("click", () => { menu.classList.remove("df-show"); exportPng(); });
   miWebp.addEventListener("click", () => { menu.classList.remove("df-show"); exportWebp(); });
+  miCopy.addEventListener("click", () => { menu.classList.remove("df-show"); copyPng(); });
   copyBtn.addEventListener("click", () => copyPng());
   menu.addEventListener("click", (e) => e.stopPropagation());
   const onDocClick = () => {
     if (!root.isConnected) { document.removeEventListener("click", onDocClick, true); return; }
     menu.classList.remove("df-show");
+    closePops();
   };
   document.addEventListener("click", onDocClick, true);
-  reloadBtn.addEventListener("click", () => render(true));
   sfReload.addEventListener("click", () => render(true)); // Safari-bar reload (iPhone)
-  ghBtn.addEventListener("click", () => window.open(REPO_URL, "_blank", "noopener,noreferrer"));
-  shareBtn.addEventListener("click", () => share());
   closeBtn.addEventListener("click", () => close());
 
   const clampCustom = () => {
@@ -794,12 +1454,14 @@
     if (!root.isConnected) { window.removeEventListener("keydown", onKey, true); return; }
     if (e.key === "Escape") {
       e.stopPropagation();
+      if (popOpen()) { closePops(); return; }
       if (menu.classList.contains("df-show")) { menu.classList.remove("df-show"); return; }
       close();
       return;
     }
-    // Cmd/Ctrl+R reloads the framed page (not the whole tab, which would kill the overlay)
-    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && (e.key === "r" || e.key === "R")) {
+    // Cmd/Ctrl+R (and Cmd/Ctrl+Shift+R) reload the framed page - not the whole tab, which
+    // would kill the overlay. There is no reload button: this is the reload.
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && (e.key === "r" || e.key === "R")) {
       e.preventDefault();
       e.stopPropagation();
       render(true);
@@ -822,7 +1484,12 @@
     try { chrome.runtime.sendMessage({ type: "df-close" }); } catch (_) {} // drop header-strip rule
   }
 
-  window.__emulator = { close, root };
+  const setDevice = (id) => {
+    if (!DEVICES.some((d) => d.id === id)) return;
+    state.deviceId = id;
+    render(true);
+  };
+  window.__emulator = { close, root, setDevice };
   try { chrome.runtime.sendMessage({ type: "df-open" }); } catch (_) {} // green "ON" badge
   render(true);
 })();
