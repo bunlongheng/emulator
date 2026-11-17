@@ -28,6 +28,7 @@ let SYMBOLS: [(String, String, NSFont.Weight)] = [
     ("arrow.clockwise",     "sf-reload",        .semibold),
     ("lock.fill",           "sf-lock",          .regular),
     ("textformat.size",     "sf-textformat",    .regular),
+    ("bed.double.fill",     "sf-bed",           .regular),
 ]
 
 let outDir = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "frames"

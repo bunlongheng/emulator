@@ -72,10 +72,18 @@ async function setActiveBadge(tabId, on) {
 }
 
 chrome.action.onClicked.addListener(async (tab) => {
-  if (!tab.id || !tab.url || !/^https?:/.test(tab.url)) return;
+  if (!tab.id || !tab.url || !/^(https?|file):/.test(tab.url)) return;
+  const local = tab.url.startsWith("file:");
+  // Local .html files need Chrome's per-extension "Allow access to file URLs" switch; without it
+  // nothing can be injected, so open the extension's details page where that switch lives.
+  if (local && !(await chrome.extension.isAllowedFileSchemeAccess())) {
+    chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` });
+    return;
+  }
   try {
     // Put the header-strip rule in place BEFORE the overlay's iframe fires its request.
-    await enableStrip(tab.id, hostOf(tab.url));
+    // A file:// page has no response headers to strip.
+    if (!local) await enableStrip(tab.id, hostOf(tab.url));
     await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ["overlay.css"] });
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["overlay.js"] });
   } catch (err) {
