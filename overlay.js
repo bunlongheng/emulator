@@ -37,9 +37,11 @@
   // The two Apple "open" bezels. Both the flat iPhone Duo (open) and every folded pose render
   // from these, so the hinge geometry only ever has to be right in one place.
   const DUO_L = { file: "iphone-duo-open-landscape.png", fw: 3093, fh: 2247, ox: 120, oy: 120, sw: 2853, sh: 2007, sr: 174,
-                  sb: { top: 34, h: 96, padX: 110, font: 42, glyph: 36 } };
+                  sb: { top: 34, h: 96, padX: 110, font: 42, glyph: 36 },
+                  cover: { top: 244, pill: [885, 1081] } }; // open landscape Safari: toolbar row, pill centred
   const DUO_P = { file: "iphone-duo-open-portrait.png", fw: 2247, fh: 3093, ox: 120, oy: 120, sw: 2007, sh: 2853, sr: 174,
-                  sb: { top: 40, h: 108, padX: 96, font: 46, glyph: 40 } };
+                  sb: { top: 40, h: 108, padX: 96, font: 46, glyph: 40 },
+                  cover: { top: 244, pill: [557, 722] } }; // open portrait Safari: one toolbar row across the top
 
   const DEVICES = [
     // --- Apple, real photoreal frames ---
@@ -49,9 +51,12 @@
     // Folded and open are the SAME physical height (2137 vs 2138 frame px) - unfolding doubles
     // the width - so "open" defaults to the landscape bezel and rotates to Apple's portrait one.
     { id: "iphoneduo", label: "iPhone Duo (front)", mode: "Front", fam: "duo", cat: "Apple - real frames", type: "image", rot: true,
-      frame: { file: "iphone-duo-closed-portrait.png", fw: 1574, fh: 2194, ox: 88, oy: 80, sw: 1398, sh: 2034, sr: 190,
+      // rad: the hinge (left) edge runs square into the hinge, only the outer corners curve
+      frame: { file: "iphone-duo-closed-portrait.png", fw: 1574, fh: 2194, ox: 88, oy: 80, sw: 1398, sh: 2034, sr: 190, rad: "0 190px 190px 0",
                // padX clears Apple's camera cutout, a 108px dot at screen x 1201-1308
-               sb: { top: 40, h: 108, padX: 220, font: 46, glyph: 40 } }, wl: 466,
+               sb: { top: 40, h: 108, padX: 220, font: 46, glyph: 40 },
+               // cover-screen Safari: page top-left, status + buttons in a right column, URL below
+               cover: { col: 253, bot: 294 } }, wl: 466,
       frameL: { file: "iphone-duo-closed-landscape.png", fw: 2194, fh: 1574, ox: 80, oy: 88, sw: 2034, sh: 1398, sr: 190,
                 // rotated, the same cutout lands top-left at screen x 89-197
                 sb: { top: 34, h: 96, padX: 220, font: 42, glyph: 36 } }, wlL: 678 },
@@ -361,6 +366,7 @@
   );
   const sfHome = el("div", "df-sf-home");
   safariBar.append(sfPill, sfTools, sfHome);
+  const coverBar = el("div", "df-cover"); // iPhone Duo front: cover-screen Safari chrome
   const blocked = el(
     "div",
     "df-blocked",
@@ -398,7 +404,7 @@
   const halfB = makeHalf();
 
   screen.append(iframe, cam, home, crease, blocked);
-  device.append(screen, sbScrim, statusbar, safariBar, crown, frameImg);
+  device.append(screen, sbScrim, statusbar, safariBar, coverBar, crown, frameImg);
   bandTop.style.order = "0"; device.style.order = "1"; lapBase.style.order = "2";
   standNeck.style.order = "3"; standFoot.style.order = "4"; bandBot.style.order = "5";
   rig.append(bandTop, device, lapBase, standNeck, standFoot, bandBot, poseBox);
@@ -490,17 +496,70 @@
     sfLock.style.setProperty("display", secure ? "inline-flex" : "none", "important");
   }
 
+  // Cover-screen Safari (iPhone Duo front), drawn in screen px of the 1398 x 2034 display:
+  // status (sleep, time, battery ring) and round buttons in a right column, URL pill below.
+  function placeCover(fr, host) {
+    const cv = fr.cover;
+    if (!cv) return coverBar.style.setProperty("display", "none", "important");
+    const S = (svg, s) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>`;
+    const at = (x, y, w, h, css, html) => `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;display:flex;align-items:center;justify-content:center;${css}">${html || ""}</div>`;
+    const btn = "background:#3a3a3c;border-radius:72px;";
+    const g = (k, h) => `<span style="display:inline-flex;color:#fff">${SF_ICONS[k].replace('style="', `style="height:${h}px;`)}</span>`;
+    const R = 56, C = 2 * Math.PI * R;
+    const bed = (x, y) => at(x - 40, y - 25, 80, 50, "", glyph("sf-bed.png", 256, 165, "df-g").replace('style="', 'style="height:38px;color:#fff;'));
+    const time = (x, y, f) => at(x - 100, y - 31, 200, 62, `font-size:${f}px;font-weight:600;letter-spacing:-0.5px;`, "9:41");
+    // battery ring: 2 arcs, the % sits in the top gap and the page dots in the bottom gap
+    const ring = (x, y) =>
+      at(x - 70, y - 70, 140, 140, "", `<svg viewBox="0 0 140 140" width="140" height="140" style="position:absolute;inset:0"><circle cx="70" cy="70" r="${R}" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(C * 105) / 360} ${C / 4} ${(C * 105) / 360} ${C / 6}" transform="rotate(300 70 70)"/></svg>`) +
+      at(x - 40, y - 63, 80, 34, "font-size:30px;font-weight:700;", "99") +
+      at(x - 40, y - 23, 80, 50, "", glyph("sf-wifi.png", 256, 185, "df-g").replace('style="', 'style="height:44px;color:#fff;')) +
+      [120, 100, 80, 60].map((a, i) => at(x + R * Math.cos((a * Math.PI) / 180) - 6, y + R * Math.sin((a * Math.PI) / 180) - 6, 12, 12,
+        `border-radius:6px;background:${i ? "#636366" : "#fff"};`)).join("");
+    const pill = (x, y, w, f) =>
+      at(x, y, w, 138, "background:#000;border-radius:69px;justify-content:flex-start;padding:0 46px 0 40px !important;box-sizing:border-box;gap:40px;",
+        S('<path d="M3 6h18M3 12h18M3 18h11"/>', 56) +
+        `<span style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;direction:rtl;text-align:left;font-size:${f}px;"><bdi dir="ltr">${host || ""}</bdi></span>` +
+        g("reload", 60));
+    const plus = S('<path d="M12 4v16M4 12h16"/>', 70);
+    coverBar.style.cssText =
+      `display:block !important;position:absolute !important;left:${fr.ox}px !important;top:${fr.oy}px !important;` +
+      `width:${fr.sw}px !important;height:${fr.sh}px !important;z-index:5 !important;pointer-events:none !important;` +
+      `border-radius:${fr.rad || fr.sr + "px"} !important;overflow:hidden !important;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif !important;color:#fff !important;`;
+    if (cv.top) {
+      // open portrait: back, reader, URL pill, + / tabs capsule, sleep + time, battery ring
+      coverBar.innerHTML =
+        at(0, 0, fr.sw, cv.top, "background:#1c1c1e;") +
+        at(47, 71, 144, 144, btn, g("back", 62)) +
+        at(227, 71, 144, 144, btn, g("book", 54)) +
+        pill(cv.pill[0], 74, cv.pill[1], 56) +
+        // right cluster is anchored to the right edge in both orientations
+        at(fr.sw - 692, 74, 285, 138, btn + "border-radius:69px;justify-content:space-around;", plus + g("tabs", 62)) +
+        bed(fr.sw - 300, 112) + time(fr.sw - 300, 171, 50) + ring(fr.sw - 146, 143);
+      return;
+    }
+    const cx = fr.sw - 144; // front: column centre (1254 of 1398)
+    coverBar.innerHTML =
+      at(fr.sw - cv.col, 0, cv.col, fr.sh, "background:#1c1c1e;") +
+      at(0, fr.sh - cv.bot, fr.sw, cv.bot, "background:#1c1c1e;") +
+      bed(cx, 245) + time(cx, 313, 54) + ring(cx, 415) +
+      at(cx - 72, 581, 144, 144, btn, g("back", 62)) +
+      at(cx - 72, 761, 144, 144, btn, g("book", 54)) +
+      at(cx - 72, 1626, 144, 306, btn + "flex-direction:column;justify-content:space-around;", plus + g("tabs", 62)) +
+      pill(72, fr.sh - 244, 1001, 46);
+  }
+
   function renderImage(d) {
     // Landscape requested but no dedicated landscape frame -> synthesize by rotating the portrait PNG.
     if (d.rot && state.landscape && !d.frameL) return renderImageRotated(d);
 
     const land = d.rot && state.landscape && d.frameL;
     const fr = land ? d.frameL : d.frame;
-    const wl = land ? d.wlL : d.wl;
-    const k = fr.sw / wl; // scale the logical iframe up to fill the screen rect
-    const sb = fr.sb;
-    const zone = sb ? Math.round(sb.top + sb.h) : 0; // status-bar band reserved at top (frame px)
-    const sfH = fr.sf ? Math.round(fr.sf.h) : 0; // Safari chrome reserved at bottom (frame px)
+    const cv = fr.cover;
+    const k = fr.sw / d[land ? "wlL" : "wl"]; // scale the logical iframe up to fill the screen rect
+    const wl = cv ? Math.round((fr.sw - (cv.col || 0)) / k) : land ? d.wlL : d.wl; // cover: page beside the column
+    const sb = cv ? null : fr.sb;
+    const zone = cv ? cv.top || 0 : sb ? Math.round(sb.top + sb.h) : 0; // chrome reserved at top (frame px)
+    const sfH = cv ? cv.bot || 0 : fr.sf ? Math.round(fr.sf.h) : 0; // chrome reserved at bottom (frame px)
     const hl = Math.round((fr.sh - zone - sfH) / k); // logical page height between the two
 
     rig.setAttribute("data-type", "image");
@@ -528,7 +587,7 @@
     // Round all four corners. An Apple Design Resources bezel punches the display out as a
     // SQUARE hole and paints the rounded corners as art, so a square-cornered screen bleeds
     // its backing colour out past the device body at the top. Clip to the real corner radius.
-    const radius = `${r}px`;
+    const radius = fr.rad || `${r}px`;
     screen.style.cssText = `position:absolute !important;left:${fr.ox}px !important;top:${fr.oy - cap}px !important;width:${fr.sw}px !important;height:${fr.sh + cap}px !important;background:${bandColor} !important;border-radius:${radius} !important;overflow:hidden !important;`;
     iframe.style.cssText = `position:absolute !important;left:0 !important;top:${zone + cap}px !important;width:${wl + SBW}px !important;height:${hl}px !important;border:0 !important;background:${pageBg()} !important;transform-origin:0 0 !important;transform:scale(${k}) !important;`;
     frameImg.style.cssText = ""; // clear any landscape-rotation transform
@@ -537,13 +596,14 @@
     if (frameImg.getAttribute("src") !== url) frameImg.src = url;
 
     if (statusbar.parentNode !== device) device.appendChild(statusbar);
-    placeStatusBar(fr.ox, fr.oy, fr.sw, fr.sb);
+    placeStatusBar(fr.ox, fr.oy, fr.sw, sb);
     // the screen background is the status-bar band now, so the legibility scrim is redundant
     sbScrim.style.setProperty("display", "none", "important");
 
     // Safari bottom chrome with the framed page's real domain
     const { host, secure } = framedHost();
-    placeSafariBar(fr.ox, fr.oy, fr.sw, fr.sh, fr.sf, host, secure, fr.sr);
+    placeSafariBar(fr.ox, fr.oy, fr.sw, fr.sh, cv ? null : fr.sf, host, secure, fr.sr);
+    placeCover(fr, host);
   }
 
   // Width a classic (space-taking) scrollbar steals from the framed page. macOS overlay bars
@@ -598,6 +658,7 @@
   function framedHost() {
     try {
       const u = new URL(window.__DF_SRC || location.href, location.href);
+      if (u.protocol === "file:") return { host: decodeURIComponent(u.pathname.split("/").pop()), secure: false }; // local file: show its name
       const host = (u.host.replace(/^www\./, "") + u.pathname + u.search).replace(/\/$/, "") || u.host;
       return { host, secure: u.protocol === "https:" };
     } catch (_) {
@@ -873,6 +934,7 @@
 
   function render(reloadSrc) {
     const d = current();
+    coverBar.style.setProperty("display", "none", "important"); // renderImage re-shows it
     if (d.type !== "pose") poseBox.style.setProperty("display", "none", "important");
     if (d.type === "pose") renderPose(d);
     else if (d.type === "image") renderImage(d);
